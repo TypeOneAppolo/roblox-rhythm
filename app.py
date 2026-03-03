@@ -114,8 +114,25 @@ def analyze_audio(filepath):
     old "pick dominant frequency band" approach.
     """
     
-    y, sr = librosa.load(filepath, sr=22050)
+    # Fix 1: Load ONLY the skeleton of the song. 
+    # sr=8000 is 'telephone quality', but perfect for finding beats.
+    y, sr = librosa.load(filepath, sr=8000, mono=True, duration=180)
+
+    # Fix 2: Delete the audio from memory the moment we get the beat track
+    # This prevents the RAM spike from staying high.
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     
+    # Fix 3: Convert frames to timestamps immediately
+    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
+    
+    # Cleanup: Manually tell Python to clear the audio data
+    del y
+
+    return {
+          "bpm": round(float(tempo), 2),
+          "beats": beat_times.tolist()
+      }
+      
     # =============================================
     # STEP 1: Harmonic-Percussive Source Separation
     # =============================================
@@ -566,4 +583,5 @@ if __name__ == "__main__":
     print("=" * 50)
 
     app.run(host="0.0.0.0", port=5000, debug=False)
+
 
