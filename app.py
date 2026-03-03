@@ -582,6 +582,7 @@ if __name__ == "__main__":
     print(f"  [Cleanup] Memory expires after {MEMORY_MAX_AGE // 3600} hours")
     print("=" * 50)
 
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=7860, debug=False)
+
 
 
