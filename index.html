@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beat Mapper</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+            background: #0e0e12;
+            color: #ccc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container { max-width: 480px; width: 90%; padding: 40px 0; }
+        
+        h1 { font-size: 1.4rem; color: #eee; font-weight: 600; margin-bottom: 4px; }
+        .subtitle { color: #666; font-size: 0.85rem; margin-bottom: 32px; }
+        
+        /* upload area */
+        .dropZone {
+            border: 1px dashed #333;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            background: #13131a;
+            margin-bottom: 16px;
+        }
+        .dropZone:hover, .dropZone.dragover { border-color: #555; }
+        .dropZone p { color: #555; font-size: 0.85rem; }
+        .dropZone .filename { color: #aaa; font-weight: 500; margin-top: 8px; font-size: 0.85rem; }
+        
+        #fileInput { display: none; }
+        
+        /* buttons */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #2a2a3a;
+            color: #ddd;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 16px;
+        }
+        .btn:hover { background: #353548; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        /* progress */
+        .progressWrap { display: none; margin-bottom: 16px; }
+        .progressWrap.show { display: block; }
+        .progressBar { height: 3px; background: #1a1a24; border-radius: 2px; overflow: hidden; }
+        .progressBar .fill { height: 100%; background: #667; border-radius: 2px; transition: width 0.3s; }
+        .statusText { color: #555; font-size: 0.8rem; margin-top: 6px; }
+        
+        /* results */
+        .results { display: none; }
+        .results.show { display: block; }
+        
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .stat {
+            flex: 1;
+            background: #13131a;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #1e1e28;
+        }
+        .stat .label { color: #555; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat .value { color: #ddd; font-size: 1.2rem; font-weight: 600; margin-top: 2px; }
+        
+        /* song id */
+        .songId {
+            background: #13131a;
+            border: 1px solid #1e1e28;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+        .songId .label { color: #555; font-size: 0.75rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .songId .id { font-family: 'SF Mono', 'Consolas', monospace; font-size: 1.6rem; font-weight: 600; color: #eee; letter-spacing: 3px; }
+        .songId .hint { color: #444; font-size: 0.75rem; margin-top: 6px; }
+        .copyNotice { color: #5a5; font-size: 0.8rem; margin-top: 4px; opacity: 0; transition: opacity 0.2s; }
+        .copyNotice.show { opacity: 1; }
+        
+        /* audio player */
+        .player {
+            background: #13131a;
+            border: 1px solid #1e1e28;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .player .trackName { color: #888; font-size: 0.8rem; margin-bottom: 10px; }
+        .playerControls { display: flex; align-items: center; gap: 12px; }
+        
+        .playBtn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid #333;
+            background: #1a1a24;
+            color: #ccc;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+        .playBtn:hover { border-color: #555; }
+        
+        .timeline { flex: 1; }
+        .seekBar {
+            width: 100%;
+            height: 3px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #222;
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+        .seekBar::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #888; cursor: pointer; }
+        .seekBar::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: #888; cursor: pointer; border: none; }
+        
+        .timeDisplay { display: flex; justify-content: space-between; color: #444; font-size: 0.7rem; font-family: monospace; margin-top: 4px; }
+        
+        /* volume row */
+        .volumeRow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .volumeRow .volIcon { color: #555; font-size: 0.8rem; flex-shrink: 0; cursor: pointer; user-select: none; }
+        .volumeRow .volIcon:hover { color: #888; }
+        .volumeBar {
+            flex: 1;
+            height: 3px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #222;
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+        .volumeBar::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #666; cursor: pointer; }
+        .volumeBar::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: #666; cursor: pointer; border: none; }
+        .volumeValue { color: #444; font-size: 0.7rem; font-family: monospace; width: 30px; text-align: right; flex-shrink: 0; }
+        
+        /* sync status */
+        .syncStatus {
+            color: #555;
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 10px;
+            background: #13131a;
+            border-radius: 6px;
+            border: 1px solid #1e1e28;
+            margin-bottom: 16px;
+        }
+        .syncStatus.active { color: #6a6; border-color: #2a3a2a; }
+        .syncStatus.stopped { color: #a66; border-color: #3a2a2a; }
+        
+        /* recent songs */
+        .recentSongs { margin-bottom: 16px; }
+        .recentSongs .sectionLabel { color: #444; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .recentItem {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #13131a;
+            border: 1px solid #1e1e28;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .recentItem:hover { border-color: #333; }
+        .recentItem .songInfo { overflow: hidden; }
+        .recentItem .songName { color: #aaa; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .recentItem .songMeta { color: #444; font-size: 0.7rem; margin-top: 2px; }
+        .recentItem .songCode { font-family: 'SF Mono', 'Consolas', monospace; color: #666; font-size: 0.75rem; flex-shrink: 0; margin-left: 12px; }
+        .recentItem .removeBtn {
+            color: #444;
+            font-size: 0.7rem;
+            margin-left: 8px;
+            cursor: pointer;
+            flex-shrink: 0;
+            padding: 2px 4px;
+        }
+        .recentItem .removeBtn:hover { color: #a55; }
+        
+        /* server config */
+        .serverConfig { padding-top: 16px; border-top: 1px solid #1a1a24; margin-top: 8px; }
+        .serverConfig label { color: #444; font-size: 0.75rem; }
+        .serverConfig input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #222;
+            border-radius: 4px;
+            background: #13131a;
+            color: #aaa;
+            font-family: monospace;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Beat Mapper</h1>
+        <p class="subtitle">Upload audio, get a rhythm map for Roblox</p>
+        
+        <!-- recent songs (populated from localStorage) -->
+        <div class="recentSongs" id="recentSongs" style="display: none;">
+            <div class="sectionLabel">Recent</div>
+            <div id="recentList"></div>
+        </div>
+        
+        <div class="dropZone" id="dropZone">
+            <p>Drop audio file or click to browse</p>
+            <p class="filename" id="fileName"></p>
+        </div>
+        <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a">
+        
+        <button class="btn" id="analyzeBtn" disabled>Analyze</button>
+        
+        <div class="progressWrap" id="progressWrap">
+            <div class="progressBar"><div class="fill" id="progressFill" style="width: 0%"></div></div>
+            <p class="statusText" id="statusText">Uploading...</p>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="stats">
+                <div class="stat">
+                    <div class="label">Tempo</div>
+                    <div class="value" id="tempoValue">—</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Beats</div>
+                    <div class="value" id="beatsValue">—</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Length</div>
+                    <div class="value" id="durationValue">—</div>
+                </div>
+            </div>
+            
+            <div class="songId" id="songIdBox">
+                <div class="label">Song ID</div>
+                <div class="id" id="songIdDisplay">—</div>
+                <div class="hint">Click to copy</div>
+                <div class="copyNotice" id="copyNotice">Copied</div>
+            </div>
+            
+            <div class="player">
+                <div class="trackName" id="trackName">—</div>
+                <div class="playerControls">
+                    <button class="playBtn" id="playBtn">▶</button>
+                    <div class="timeline">
+                        <input type="range" class="seekBar" id="seekBar" min="0" max="100" value="0" step="0.1">
+                        <div class="timeDisplay">
+                            <span id="currentTime">0:00</span>
+                            <span id="totalTime">0:00</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- volume -->
+                <div class="volumeRow">
+                    <span class="volIcon" id="muteToggle">🔊</span>
+                    <input type="range" class="volumeBar" id="volumeBar" min="0" max="100" value="80" step="1">
+                    <span class="volumeValue" id="volumeValue">80%</span>
+                </div>
+            </div>
+            
+            <div class="syncStatus" id="syncStatus">Waiting for Roblox to start...</div>
+        </div>
+        
+        <div class="serverConfig">
+            <label>Server</label>
+            <input type="text" id="serverUrl" value="http://localhost:5000">
+        </div>
+    </div>
+
+    <audio id="audioElement"></audio>
+
+    <script>
+        // ==========================================
+        // DOM refs
+        // ==========================================
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const progressWrap = document.getElementById("progressWrap");
+        const progressFill = document.getElementById("progressFill");
+        const statusText = document.getElementById("statusText");
+        const results = document.getElementById("results");
+        const audioElement = document.getElementById("audioElement");
+        const playBtn = document.getElementById("playBtn");
+        const seekBar = document.getElementById("seekBar");
+        const volumeBar = document.getElementById("volumeBar");
+        const volumeValue = document.getElementById("volumeValue");
+        const muteToggle = document.getElementById("muteToggle");
+        
+        let selectedFile = null;
+        let audioUrl = null;
+        let isPlaying = false;
+        let currentSongId = null;
+
+        // polling handle — ONE interval that runs whenever we have a songId,
+        // regardless of whether audio is playing or not
+        let syncPollInterval = null;
+
+        // tracks whether audio was started by Roblox sync (not manual play)
+        let syncTriggered = false;
+
+        // volume state
+        let savedVolume = 0.8;
+        let isMuted = false;
+
+        // ==========================================
+        // RECENT SONGS — localStorage, 3 max
+        // ==========================================
+        const RECENT_KEY = "beatmapper_recent";
+        const MAX_RECENT = 3;
+
+        function loadrecentsongs() {
+            try {
+                const raw = localStorage.getItem(RECENT_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch { return []; }
+        }
+
+        function saverecentsongs(list) {
+            try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch {}
+        }
+
+        function addrecentsong(songId, filename, tempo, totalBeats, duration) {
+            let recent = loadrecentsongs();
+            // remove duplicate if exists
+            recent = recent.filter(r => r.id !== songId);
+            // add to front
+            recent.unshift({ id: songId, name: filename, tempo, beats: totalBeats, dur: duration, ts: Date.now() });
+            // cap at MAX_RECENT
+            if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
+            saverecentsongs(recent);
+            renderrecentsongs();
+        }
+
+        function removerecentsong(songId) {
+            let recent = loadrecentsongs();
+            recent = recent.filter(r => r.id !== songId);
+            saverecentsongs(recent);
+            renderrecentsongs();
+        }
+
+        function renderrecentsongs() {
+            const list = loadrecentsongs();
+            const container = document.getElementById("recentSongs");
+            const listEl = document.getElementById("recentList");
+            listEl.innerHTML = "";
+
+            if (list.length === 0) {
+                container.style.display = "none";
+                return;
+            }
+            container.style.display = "block";
+
+            for (const song of list) {
+                const item = document.createElement("div");
+                item.className = "recentItem";
+
+                const infoDiv = document.createElement("div");
+                infoDiv.className = "songInfo";
+
+                const nameEl = document.createElement("div");
+                nameEl.className = "songName";
+                nameEl.textContent = song.name || song.id;
+                infoDiv.appendChild(nameEl);
+
+                const metaEl = document.createElement("div");
+                metaEl.className = "songMeta";
+                metaEl.textContent = `${song.tempo} BPM · ${song.beats} beats · ${formatTime(song.dur)}`;
+                infoDiv.appendChild(metaEl);
+
+                const codeEl = document.createElement("span");
+                codeEl.className = "songCode";
+                codeEl.textContent = song.id;
+
+                const removeEl = document.createElement("span");
+                removeEl.className = "removeBtn";
+                removeEl.textContent = "✕";
+                removeEl.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    removerecentsong(song.id);
+                });
+
+                item.appendChild(infoDiv);
+                item.appendChild(codeEl);
+                item.appendChild(removeEl);
+
+                // clicking a recent song: we can't replay the audio (file is gone)
+                // but we CAN copy the ID and start sync polling for it
+                item.addEventListener("click", () => {
+                    // put the ID in the results view so user can copy it
+                    document.getElementById("songIdDisplay").textContent = song.id;
+                    document.getElementById("tempoValue").textContent = song.tempo;
+                    document.getElementById("beatsValue").textContent = song.beats;
+                    document.getElementById("durationValue").textContent = formatTime(song.dur);
+                    document.getElementById("trackName").textContent = song.name || song.id;
+                    results.classList.add("show");
+
+                    // NOTE: we don't have the audio file anymore so the player
+                    // won't work for manual play — but sync from Roblox will still
+                    // work if the beat data is still on the server.
+                    // The user would need to re-upload audio for local playback.
+                    // If there's already an audio loaded from this session, keep it.
+
+                    startsyncpolling(song.id);
+
+                    navigator.clipboard.writeText(song.id).catch(() => {});
+                    const notice = document.getElementById("copyNotice");
+                    notice.classList.add("show");
+                    setTimeout(() => notice.classList.remove("show"), 1500);
+                });
+
+                listEl.appendChild(item);
+            }
+        }
+
+        // render on load
+        renderrecentsongs();
+
+
+        // ==========================================
+        // VOLUME
+        // ==========================================
+
+        // load saved volume from localStorage
+        (function() {
+            try {
+                const sv = localStorage.getItem("beatmapper_volume");
+                if (sv !== null) {
+                    savedVolume = parseFloat(sv);
+                    if (isNaN(savedVolume)) savedVolume = 0.8;
+                    savedVolume = Math.max(0, Math.min(1, savedVolume));
+                }
+            } catch {}
+            audioElement.volume = savedVolume;
+            volumeBar.value = Math.round(savedVolume * 100);
+            volumeValue.textContent = Math.round(savedVolume * 100) + "%";
+        })();
+
+        volumeBar.addEventListener("input", () => {
+            const vol = parseInt(volumeBar.value) / 100;
+            audioElement.volume = vol;
+            savedVolume = vol;
+            isMuted = false;
+            volumeValue.textContent = Math.round(vol * 100) + "%";
+            muteToggle.textContent = vol === 0 ? "🔇" : vol < 0.4 ? "🔉" : "🔊";
+            try { localStorage.setItem("beatmapper_volume", vol.toString()); } catch {}
+        });
+
+        muteToggle.addEventListener("click", () => {
+            if (isMuted) {
+                // unmute — restore previous volume
+                isMuted = false;
+                audioElement.volume = savedVolume;
+                volumeBar.value = Math.round(savedVolume * 100);
+                volumeValue.textContent = Math.round(savedVolume * 100) + "%";
+                muteToggle.textContent = savedVolume < 0.4 ? "🔉" : "🔊";
+            } else {
+                // mute
+                isMuted = true;
+                savedVolume = audioElement.volume || 0.8; // remember current
+                audioElement.volume = 0;
+                volumeBar.value = 0;
+                volumeValue.textContent = "0%";
+                muteToggle.textContent = "🔇";
+            }
+        });
+
+
+        // ==========================================
+        // FILE SELECTION
+        // ==========================================
+
+        dropZone.addEventListener("click", () => fileInput.click());
+        dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("dragover"); });
+        dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("dragover");
+            if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener("change", () => { if (fileInput.files.length > 0) handleFileSelect(fileInput.files[0]); });
+        
+        function handleFileSelect(file) {
+            selectedFile = file;
+            document.getElementById("fileName").textContent = file.name;
+            analyzeBtn.disabled = false;
+            results.classList.remove("show");
+
+            // stop any existing playback + polling
+            fullreset();
+
+            if (audioUrl) URL.revokeObjectURL(audioUrl);
+            audioUrl = URL.createObjectURL(file);
+            audioElement.src = audioUrl;
+        }
+
+
+        // ==========================================
+        // FULL RESET — stops everything cleanly
+        // ==========================================
+        function fullreset() {
+            // stop audio
+            audioElement.pause();
+            audioElement.currentTime = 0;
+            playBtn.textContent = "▶";
+            isPlaying = false;
+            syncTriggered = false;
+
+            // stop polling
+            stopsyncpolling();
+
+            // reset sync UI
+            const syncEl = document.getElementById("syncStatus");
+            syncEl.textContent = "Waiting for Roblox to start...";
+            syncEl.classList.remove("active", "stopped");
+        }
+
+        
+        // ==========================================
+        // UPLOAD + ANALYZE
+        // ==========================================
+
+        analyzeBtn.addEventListener("click", async () => {
+            if (!selectedFile) return;
+            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+            
+            progressWrap.classList.add("show");
+            results.classList.remove("show");
+            analyzeBtn.disabled = true;
+            progressFill.style.width = "30%";
+            statusText.textContent = "Uploading...";
+
+            // reset state from any previous song
+            fullreset();
+            
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+            
+            try {
+                progressFill.style.width = "60%";
+                statusText.textContent = "Analyzing...";
+                
+                const response = await fetch(`${serverUrl}/upload`, { method: "POST", body: formData });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                
+                progressFill.style.width = "100%";
+                statusText.textContent = "Done";
+                
+                document.getElementById("tempoValue").textContent = data.tempo;
+                document.getElementById("beatsValue").textContent = data.totalBeats;
+                document.getElementById("durationValue").textContent = formatTime(data.duration);
+                document.getElementById("songIdDisplay").textContent = data.songId;
+                document.getElementById("trackName").textContent = selectedFile.name;
+
+                // save to recent songs
+                addrecentsong(data.songId, selectedFile.name, data.tempo, data.totalBeats, data.duration);
+                
+                setTimeout(() => {
+                    results.classList.add("show");
+                    progressWrap.classList.remove("show");
+                    analyzeBtn.disabled = false;
+                    startsyncpolling(data.songId);
+                }, 400);
+                
+            } catch (err) {
+                statusText.textContent = "Error: " + err.message;
+                analyzeBtn.disabled = false;
+            }
+        });
+        
+
+        // ==========================================
+        // AUDIO PLAYER
+        // ==========================================
+        
+        playBtn.addEventListener("click", () => {
+            if (!audioElement.src) return;
+            if (isPlaying) {
+                audioElement.pause();
+                playBtn.textContent = "▶";
+                isPlaying = false;
+            } else {
+                audioElement.play();
+                playBtn.textContent = "⏸";
+                isPlaying = true;
+            }
+        });
+        
+        audioElement.addEventListener("timeupdate", () => {
+            if (audioElement.duration) {
+                seekBar.value = (audioElement.currentTime / audioElement.duration) * 100;
+                document.getElementById("currentTime").textContent = formatTime(audioElement.currentTime);
+            }
+        });
+        
+        audioElement.addEventListener("loadedmetadata", () => {
+            document.getElementById("totalTime").textContent = formatTime(audioElement.duration);
+        });
+        
+        seekBar.addEventListener("input", () => {
+            if (audioElement.duration) audioElement.currentTime = (seekBar.value / 100) * audioElement.duration;
+        });
+        
+        audioElement.addEventListener("ended", () => {
+            playBtn.textContent = "▶";
+            isPlaying = false;
+            syncTriggered = false;
+
+            const syncEl = document.getElementById("syncStatus");
+            syncEl.textContent = "Waiting for Roblox to start...";
+            syncEl.classList.remove("active", "stopped");
+            // polling keeps running so it catches the next start
+        });
+
+
+        // ==========================================
+        // SYNC POLLING — runs continuously while we have a songId
+        // Handles BOTH start AND stop signals
+        // ==========================================
+
+        function startsyncpolling(songId) {
+            // kill any existing poll first
+            stopsyncpolling();
+
+            currentSongId = songId;
+            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+            const syncEl = document.getElementById("syncStatus");
+            syncEl.textContent = "Waiting for Roblox to start...";
+            syncEl.classList.remove("active", "stopped");
+
+            syncPollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${serverUrl}/sync/${songId}/poll`);
+                    const data = await res.json();
+
+                    if (data.stop) {
+                        // ---- STOP SIGNAL ----
+                        audioElement.pause();
+                        audioElement.currentTime = 0;
+                        playBtn.textContent = "▶";
+                        isPlaying = false;
+                        syncTriggered = false;
+
+                        syncEl.textContent = "Stopped by Roblox";
+                        syncEl.classList.remove("active");
+                        syncEl.classList.add("stopped");
+
+                        // after a moment, go back to waiting state
+                        setTimeout(() => {
+                            syncEl.textContent = "Waiting for Roblox to start...";
+                            syncEl.classList.remove("stopped");
+                        }, 2000);
+                    }
+
+                    if (data.play) {
+                        // ---- PLAY SIGNAL ----
+                        // if audio is already playing (rejoin case), reset it
+                        audioElement.currentTime = 0;
+                        audioElement.play().catch(() => {});
+                        playBtn.textContent = "⏸";
+                        isPlaying = true;
+                        syncTriggered = true;
+
+                        syncEl.textContent = "Playing";
+                        syncEl.classList.remove("stopped");
+                        syncEl.classList.add("active");
+                    }
+                } catch (e) {
+                    // server unreachable — don't spam errors, just keep trying
+                }
+            }, 100);
+        }
+
+        function stopsyncpolling() {
+            if (syncPollInterval) {
+                clearInterval(syncPollInterval);
+                syncPollInterval = null;
+            }
+        }
+
+
+        // ==========================================
+        // COPY SONG ID
+        // ==========================================
+        
+        document.getElementById("songIdBox").addEventListener("click", () => {
+            navigator.clipboard.writeText(document.getElementById("songIdDisplay").textContent);
+            const notice = document.getElementById("copyNotice");
+            notice.classList.add("show");
+            setTimeout(() => notice.classList.remove("show"), 1500);
+        });
+        
+        function formatTime(s) {
+            return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
+        }
+
+
+        // ==========================================
+        // PAGE VISIBILITY — pause polling when tab is hidden
+        // to avoid hammering the server, resume when tab is visible
+        // ==========================================
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                // don't stop polling entirely — just slow it down
+                // (the interval stays as-is, fetch will just queue up)
+            }
+        });
+
+
+        // ==========================================
+        // BEFOREUNLOAD — warn if audio is playing via sync
+        // ==========================================
+        window.addEventListener("beforeunload", (e) => {
+            if (isPlaying && syncTriggered) {
+                e.preventDefault();
+                e.returnValue = "";
+            }
+        });
+    </script>
+</body>
+</html>
