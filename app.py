@@ -25,7 +25,8 @@ import time
 import threading
 
 app = Flask(__name__)
-CORS(app)  # allows the website to talk to this server (cross-origin)
+CORS(app, resources={r"/*": {"origins": "https://github.com/TypeOneAppolo"}})  # allows the website to talk to this server (cross-origin)
+
 
 # where we store uploaded files temporarily
 UPLOAD_FOLDER = "uploads"
@@ -563,4 +564,5 @@ if __name__ == "__main__":
     print(f"  [Cleanup] Files expire after {FILE_MAX_AGE // 3600} hours")
     print(f"  [Cleanup] Memory expires after {MEMORY_MAX_AGE // 3600} hours")
     print("=" * 50)
+
     app.run(host="0.0.0.0", port=5000, debug=False)
