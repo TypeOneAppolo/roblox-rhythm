@@ -1,18 +1,21 @@
-# Use a lightweight Python image
-FROM python:3.11-slim
+FROM python:3.11
 
-# Install system dependencies for audio processing
-RUN apt-get update && apt-get install -y libsndfile1
+# Install system audio libraries
+RUN apt-get update && apt-get install -y libsndfile1 ffmpeg
 
-# Set the working directory
+# Set up user
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
+
 WORKDIR /app
 
-# Copy and install Python requirements
-COPY requirements.txt .
+# Install python dependencies
+COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your code
-COPY . .
+# Copy the rest of the app
+COPY --chown=user . .
 
-# Run the app using Gunicorn
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
+# Hugging Face runs on port 7860 by default
+CMD ["python", "app.py"]
