@@ -25,7 +25,7 @@ import time
 import threading
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://github.com/TypeOneAppolo"}})  # allows the website to talk to this server (cross-origin)
+CORS(app, resources={r"/*": {"origins": "https://typeoneappolo.github.io/roblox-rhythm/"}})
 
 
 # where we store uploaded files temporarily
@@ -566,3 +566,4 @@ if __name__ == "__main__":
     print("=" * 50)
 
     app.run(host="0.0.0.0", port=5000, debug=False)
+
