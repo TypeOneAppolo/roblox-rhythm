@@ -3,30 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beat Mapper — Rhythm Visualizer & Training Tool</title>
+    <title>Beat Mapper — Upload audio, get a beat map</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #0b0b10;
-            --surface: #12121a;
-            --border: #1e1e2a;
-            --border-hover: #2e2e40;
-            --text: #c8c8d4;
-            --text-dim: #5a5a70;
-            --text-bright: #eeeef4;
-            --accent: #ff6b4a;
-            --accent-glow: rgba(255, 107, 74, 0.15);
-            --accent-subtle: rgba(255, 107, 74, 0.08);
-            --green: #4ade80;
-            --red: #f87171;
-            --radius: 10px;
+            --bg: #0a0a0c;
+            --surface: #111114;
+            --border: #1c1c22;
+            --border-hover: #2a2a34;
+            --text: #a0a0ae;
+            --text-dim: #55555f;
+            --text-bright: #e4e4ec;
+            --accent: #e85d3a;
+            --green: #3fca6e;
+            --red: #e55555;
+            --radius: 8px;
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'DM Sans', sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
@@ -34,106 +32,90 @@
             align-items: center;
             justify-content: center;
             overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: -40%;
-            left: -20%;
-            width: 80%;
-            height: 80%;
-            background: radial-gradient(ellipse, rgba(255, 107, 74, 0.04) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -30%;
-            right: -20%;
-            width: 70%;
-            height: 70%;
-            background: radial-gradient(ellipse, rgba(120, 80, 255, 0.03) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 500px;
+            max-width: 480px;
             width: 92%;
-            padding: 40px 0;
+            padding: 48px 0;
             position: relative;
-            z-index: 1;
         }
 
-        .header { margin-bottom: 32px; }
+        /* ---- HEADER ---- */
+        .header { margin-bottom: 36px; }
 
         .logo {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         .logo-icon {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             background: var(--accent);
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 13px;
             flex-shrink: 0;
-            animation: pulse-icon 3s ease-in-out infinite;
-        }
-        @keyframes pulse-icon {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            color: #fff;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 700;
             color: var(--text-bright);
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
         }
 
         .subtitle {
             color: var(--text-dim);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 400;
-            margin-left: 42px;
+            margin-left: 38px;
+            line-height: 1.5;
         }
 
         .tags {
             display: flex;
             gap: 6px;
-            margin-top: 10px;
-            margin-left: 42px;
+            margin-top: 12px;
+            margin-left: 38px;
             flex-wrap: wrap;
         }
         .tag {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 600;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            padding: 3px 8px;
-            border-radius: 4px;
-            background: var(--accent-subtle);
-            color: var(--accent);
-            border: 1px solid rgba(255, 107, 74, 0.12);
-        }
-        .tag.alt {
-            background: rgba(120, 80, 255, 0.06);
-            color: #a78bfa;
-            border-color: rgba(120, 80, 255, 0.1);
+            padding: 3px 7px;
+            border-radius: 3px;
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
         }
 
+        /* ---- COMPAT NOTE ---- */
+        .compat-note {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding: 10px 12px;
+            border-left: 2px solid var(--border);
+        }
+        .compat-note strong { color: var(--text); font-weight: 600; }
+
+        /* ---- RECENT SONGS ---- */
         .recentSongs { margin-bottom: 20px; }
         .sectionLabel {
             color: var(--text-dim);
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.06em;
@@ -147,134 +129,96 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 11px 14px;
-            margin-bottom: 6px;
+            padding: 10px 12px;
+            margin-bottom: 5px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: border-color 0.15s;
         }
-        .recentItem:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-        }
+        .recentItem:hover { border-color: var(--border-hover); }
         .recentItem .songInfo { overflow: hidden; flex: 1; min-width: 0; }
         .recentItem .songName {
             color: var(--text-bright);
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .recentItem .songMeta { color: var(--text-dim); font-size: 0.7rem; margin-top: 2px; }
+        .recentItem .songMeta { color: var(--text-dim); font-size: 0.68rem; margin-top: 2px; }
         .recentItem .songCode {
-            font-family: 'Space Mono', monospace;
+            font-family: 'JetBrains Mono', monospace;
             color: var(--accent);
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             flex-shrink: 0;
             margin-left: 12px;
-            background: var(--accent-subtle);
-            padding: 3px 8px;
-            border-radius: 5px;
         }
         .recentItem .removeBtn {
             color: var(--text-dim);
-            font-size: 0.7rem;
-            margin-left: 8px;
+            font-size: 0.68rem;
+            margin-left: 10px;
             cursor: pointer;
             flex-shrink: 0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            transition: all 0.15s;
+            padding: 2px 5px;
+            border-radius: 3px;
+            transition: color 0.15s;
         }
-        .recentItem .removeBtn:hover { color: var(--red); background: rgba(248, 113, 113, 0.1); }
+        .recentItem .removeBtn:hover { color: var(--red); }
 
+        /* ---- DROP ZONE ---- */
         .dropZone {
-            border: 2px dashed var(--border);
+            border: 1px dashed var(--border-hover);
             border-radius: var(--radius);
-            padding: 44px 20px;
+            padding: 40px 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: border-color 0.2s;
             background: var(--surface);
-            margin-bottom: 14px;
-            position: relative;
-            overflow: hidden;
+            margin-bottom: 12px;
         }
-        .dropZone::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .dropZone:hover::before, .dropZone.dragover::before { opacity: 1; }
-        .dropZone:hover, .dropZone.dragover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(255, 107, 74, 0.06);
-        }
+        .dropZone:hover, .dropZone.dragover { border-color: var(--accent); }
 
         .dropZone .drop-icon {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
             display: block;
-            filter: grayscale(0.3);
-        }
-        .dropZone p {
             color: var(--text-dim);
-            font-size: 0.84rem;
-            position: relative;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
         }
+        .dropZone p { color: var(--text-dim); font-size: 0.8rem; }
         .dropZone .filename {
             color: var(--text-bright);
             font-weight: 500;
             margin-top: 8px;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
         }
         #fileInput { display: none; }
 
+        /* ---- BUTTON ---- */
         .btn {
             width: 100%;
-            padding: 13px;
+            padding: 12px;
             border: none;
             border-radius: var(--radius);
             background: var(--accent);
             color: #fff;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.9rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            margin-bottom: 16px;
+            transition: opacity 0.15s;
+            margin-bottom: 14px;
             letter-spacing: 0.01em;
-            position: relative;
-            overflow: hidden;
         }
-        .btn::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
-            pointer-events: none;
-        }
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 24px rgba(255, 107, 74, 0.25);
-        }
-        .btn:active { transform: translateY(0); }
-        .btn:disabled {
-            opacity: 0.25;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        .btn:hover { opacity: 0.88; }
+        .btn:active { opacity: 0.75; }
+        .btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
-        .progressWrap { display: none; margin-bottom: 16px; }
+        /* ---- PROGRESS ---- */
+        .progressWrap { display: none; margin-bottom: 14px; }
         .progressWrap.show { display: block; }
         .progressBar {
-            height: 4px;
+            height: 3px;
             background: var(--border);
             border-radius: 2px;
             overflow: hidden;
@@ -284,126 +228,93 @@
             background: var(--accent);
             border-radius: 2px;
             transition: width 0.4s ease;
-            box-shadow: 0 0 12px rgba(255, 107, 74, 0.4);
         }
-        .statusText {
-            color: var(--text-dim);
-            font-size: 0.78rem;
-            margin-top: 8px;
-        }
+        .statusText { color: var(--text-dim); font-size: 0.75rem; margin-top: 8px; }
 
+        /* ---- RESULTS ---- */
         .results { display: none; }
-        .results.show { display: block; animation: fadeSlideIn 0.4s ease; }
-
-        @keyframes fadeSlideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .results.show { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .stats {
             display: flex;
-            gap: 10px;
-            margin-bottom: 14px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
         .stat {
             flex: 1;
             background: var(--surface);
-            padding: 14px 12px;
+            padding: 12px 10px;
             border-radius: var(--radius);
             border: 1px solid var(--border);
             text-align: center;
-            transition: border-color 0.2s;
         }
-        .stat:hover { border-color: var(--border-hover); }
         .stat .label {
             color: var(--text-dim);
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.06em;
         }
         .stat .value {
             color: var(--text-bright);
-            font-size: 1.35rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            margin-top: 4px;
-            font-family: 'Space Mono', monospace;
+            margin-top: 3px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .songId {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 18px;
             text-align: center;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
+            transition: border-color 0.15s;
         }
-        .songId::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 60%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .songId:hover::before { opacity: 1; }
-        .songId:hover {
-            border-color: var(--accent);
-            transform: translateY(-1px);
-        }
+        .songId:hover { border-color: var(--accent); }
         .songId .label {
             color: var(--text-dim);
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            margin-bottom: 8px;
-            position: relative;
+            margin-bottom: 6px;
         }
         .songId .id {
-            font-family: 'Space Mono', monospace;
-            font-size: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.8rem;
             font-weight: 700;
             color: var(--accent);
-            letter-spacing: 4px;
-            position: relative;
-            text-shadow: 0 0 30px rgba(255, 107, 74, 0.2);
+            letter-spacing: 3px;
         }
-        .songId .hint {
-            color: var(--text-dim);
-            font-size: 0.72rem;
-            margin-top: 8px;
-            position: relative;
-        }
+        .songId .hint { color: var(--text-dim); font-size: 0.7rem; margin-top: 6px; }
         .copyNotice {
             color: var(--green);
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 500;
             margin-top: 4px;
             opacity: 0;
-            transition: opacity 0.2s;
-            position: relative;
+            transition: opacity 0.15s;
         }
         .copyNotice.show { opacity: 1; }
 
         .howHint {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--text-dim);
             text-align: center;
             margin-bottom: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
         }
         .howHint .step-num {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 18px;
-            height: 18px;
-            font-size: 0.6rem;
+            width: 16px;
+            height: 16px;
+            font-size: 0.58rem;
             font-weight: 700;
             background: var(--border);
             color: var(--text);
@@ -412,46 +323,38 @@
             vertical-align: middle;
         }
 
+        /* ---- PLAYER ---- */
         .player {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 14px;
-        }
-        .player .trackName {
-            color: var(--text-dim);
-            font-size: 0.78rem;
+            padding: 14px;
             margin-bottom: 12px;
-            font-weight: 500;
         }
-        .playerControls { display: flex; align-items: center; gap: 12px; }
+        .player .trackName { color: var(--text-dim); font-size: 0.75rem; margin-bottom: 10px; font-weight: 500; }
+        .playerControls { display: flex; align-items: center; gap: 10px; }
 
         .playBtn {
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             border: 1px solid var(--border);
             background: var(--bg);
             color: var(--text-bright);
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            transition: all 0.2s;
+            transition: border-color 0.15s;
         }
-        .playBtn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            box-shadow: 0 0 16px rgba(255, 107, 74, 0.12);
-        }
+        .playBtn:hover { border-color: var(--text-dim); }
 
         .timeline { flex: 1; }
         .seekBar {
             width: 100%;
-            height: 4px;
+            height: 3px;
             -webkit-appearance: none;
             appearance: none;
             background: var(--border);
@@ -461,18 +364,17 @@
         }
         .seekBar::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: var(--accent);
+            background: var(--text);
             cursor: pointer;
-            box-shadow: 0 0 8px rgba(255, 107, 74, 0.3);
         }
         .seekBar::-moz-range-thumb {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: var(--accent);
+            background: var(--text);
             cursor: pointer;
             border: none;
         }
@@ -480,22 +382,22 @@
             display: flex;
             justify-content: space-between;
             color: var(--text-dim);
-            font-size: 0.68rem;
-            font-family: 'Space Mono', monospace;
-            margin-top: 6px;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 5px;
         }
 
         .volumeRow {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 12px;
-            padding-top: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
             border-top: 1px solid var(--border);
         }
         .volumeRow .volIcon {
             color: var(--text-dim);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             flex-shrink: 0;
             cursor: pointer;
             user-select: none;
@@ -504,7 +406,7 @@
         .volumeRow .volIcon:hover { color: var(--text-bright); }
         .volumeBar {
             flex: 1;
-            height: 4px;
+            height: 3px;
             -webkit-appearance: none;
             appearance: none;
             background: var(--border);
@@ -514,15 +416,15 @@
         }
         .volumeBar::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--text-dim);
             cursor: pointer;
         }
         .volumeBar::-moz-range-thumb {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--text-dim);
             cursor: pointer;
@@ -530,241 +432,212 @@
         }
         .volumeValue {
             color: var(--text-dim);
-            font-size: 0.68rem;
-            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
             width: 30px;
             text-align: right;
             flex-shrink: 0;
         }
 
+        /* ---- SYNC STATUS ---- */
         .syncStatus {
             color: var(--text-dim);
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 500;
             text-align: center;
-            padding: 12px;
+            padding: 10px;
             background: var(--surface);
             border-radius: var(--radius);
             border: 1px solid var(--border);
-            margin-bottom: 16px;
-            transition: all 0.3s ease;
+            margin-bottom: 14px;
+            transition: all 0.2s ease;
         }
         .syncStatus.active {
             color: var(--green);
-            border-color: rgba(74, 222, 128, 0.2);
-            background: rgba(74, 222, 128, 0.04);
-            box-shadow: 0 0 20px rgba(74, 222, 128, 0.05);
+            border-color: rgba(63, 202, 110, 0.2);
         }
         .syncStatus.stopped {
             color: var(--red);
-            border-color: rgba(248, 113, 113, 0.2);
-            background: rgba(248, 113, 113, 0.04);
+            border-color: rgba(229, 85, 85, 0.2);
         }
-
         .syncStatus::before {
             content: '';
             display: inline-block;
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
             background: var(--text-dim);
-            margin-right: 8px;
+            margin-right: 7px;
             vertical-align: middle;
             animation: blink 2s ease-in-out infinite;
         }
         .syncStatus.active::before { background: var(--green); }
         .syncStatus.stopped::before { background: var(--red); animation: none; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
+        /* ---- SERVER CONFIG ---- */
         .serverConfig {
-            padding-top: 16px;
+            padding-top: 14px;
             border-top: 1px solid var(--border);
             margin-top: 8px;
         }
         .serverConfig label {
             color: var(--text-dim);
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
         .serverConfig input {
             width: 100%;
-            padding: 10px 12px;
+            padding: 9px 11px;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 5px;
             background: var(--surface);
             color: var(--text);
-            font-family: 'Space Mono', monospace;
-            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
             margin-top: 6px;
-            transition: border-color 0.2s;
+            transition: border-color 0.15s;
         }
         .serverConfig input:focus { outline: none; border-color: var(--border-hover); }
 
+        /* ---- FOOTER ---- */
         .footer {
-            margin-top: 32px;
-            padding-top: 24px;
+            margin-top: 28px;
+            padding-top: 20px;
             border-top: 1px solid var(--border);
         }
 
-        /* ---- solo banner ---- */
         .solo-banner {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 20px 18px;
-            margin-bottom: 16px;
+            padding: 18px 16px;
+            margin-bottom: 14px;
             text-align: center;
         }
         .solo-banner .solo-title {
             color: var(--text-bright);
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             font-weight: 700;
             margin-bottom: 4px;
         }
         .solo-banner .solo-desc {
             color: var(--text-dim);
-            font-size: 0.76rem;
-            line-height: 1.5;
+            font-size: 0.72rem;
+            line-height: 1.55;
             margin-bottom: 14px;
         }
 
-        /* Discord button */
         .discord-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             width: 100%;
-            padding: 14px 20px;
-            border-radius: 8px;
+            padding: 12px 18px;
+            border-radius: 6px;
             background: #5865F2;
             color: #fff;
-            font-family: 'Outfit', sans-serif;
-            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
             text-decoration: none;
-            transition: all 0.2s;
-            margin-bottom: 6px;
-            letter-spacing: 0.01em;
-            box-shadow: 0 4px 20px rgba(88, 101, 242, 0.35);
+            transition: opacity 0.15s;
+            margin-bottom: 4px;
         }
-        .discord-btn:hover {
-            background: #4752c4;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(88, 101, 242, 0.5);
-        }
+        .discord-btn:hover { opacity: 0.85; }
         .discord-sub {
             color: var(--text-dim);
-            font-size: 0.73rem;
-            margin-bottom: 14px;
+            font-size: 0.7rem;
+            margin-bottom: 12px;
             line-height: 1.5;
             text-align: center;
         }
 
-        /* Roblox button */
         .roblox-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             width: 100%;
-            padding: 13px 20px;
-            border-radius: 8px;
+            padding: 12px 18px;
+            border-radius: 6px;
             background: #e2231a;
             color: #fff;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
             font-weight: 700;
             cursor: pointer;
             text-decoration: none;
-            transition: all 0.2s;
-            margin-bottom: 6px;
-            letter-spacing: 0.01em;
-            box-shadow: 0 4px 20px rgba(226, 35, 26, 0.3);
+            transition: opacity 0.15s;
+            margin-bottom: 4px;
         }
-        .roblox-btn:hover {
-            background: #c41e16;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(226, 35, 26, 0.4);
-        }
+        .roblox-btn:hover { opacity: 0.85; }
         .roblox-sub {
             color: var(--text-dim);
-            font-size: 0.73rem;
-            margin-bottom: 14px;
+            font-size: 0.7rem;
+            margin-bottom: 12px;
             line-height: 1.5;
             text-align: center;
         }
 
-        /* Ko-fi donate button */
         .donate-btn {
             display: inline-block;
-            padding: 8px 20px;
-            border-radius: 6px;
-            background: rgba(255, 107, 74, 0.1);
-            border: 1px solid rgba(255, 107, 74, 0.2);
-            color: var(--accent);
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.8rem;
+            padding: 7px 16px;
+            border-radius: 5px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: border-color 0.15s, color 0.15s;
         }
-        .donate-btn:hover {
-            background: rgba(255, 107, 74, 0.18);
-            border-color: rgba(255, 107, 74, 0.35);
-            transform: translateY(-1px);
-        }
+        .donate-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-        .legal-section { margin-top: 16px; }
+        .legal-section { margin-top: 14px; }
         .legal-section .legal-item {
-            padding: 10px 0;
+            padding: 9px 0;
             border-bottom: 1px solid var(--border);
         }
         .legal-section .legal-item:last-child { border-bottom: none; }
         .legal-section .legal-label {
             color: var(--text);
-            font-size: 0.74rem;
+            font-size: 0.72rem;
             font-weight: 600;
             margin-bottom: 2px;
         }
         .legal-section .legal-text {
             color: var(--text-dim);
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             line-height: 1.55;
         }
-        .legal-section .legal-text a {
-            color: var(--accent);
-            text-decoration: none;
-        }
+        .legal-section .legal-text a { color: var(--accent); text-decoration: none; }
         .legal-section .legal-text a:hover { text-decoration: underline; }
 
         .copyright-line {
             text-align: center;
             color: var(--text-dim);
-            font-size: 0.65rem;
-            margin-top: 16px;
+            font-size: 0.62rem;
+            margin-top: 14px;
             padding-bottom: 20px;
         }
 
         .filterWarning {
             display: none;
-            background: rgba(248, 113, 113, 0.08);
-            border: 1px solid rgba(248, 113, 113, 0.2);
+            background: rgba(229, 85, 85, 0.06);
+            border: 1px solid rgba(229, 85, 85, 0.15);
             border-radius: var(--radius);
-            padding: 12px 16px;
-            margin-bottom: 14px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
             color: var(--red);
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             text-align: center;
-            animation: fadeSlideIn 0.3s ease;
         }
         .filterWarning.show { display: block; }
     </style>
@@ -773,15 +646,18 @@
     <div class="container">
         <div class="header">
             <div class="logo">
-                <div class="logo-icon">♪</div>
+                <div class="logo-icon">B</div>
                 <h1>Beat Mapper</h1>
             </div>
-            <p class="subtitle">Rhythm visualization & training tool — upload any audio, get a beat map.</p>
+            <p class="subtitle">Upload any audio file, get a beat map you can use in Roblox.</p>
             <div class="tags">
-                <span class="tag">Any Audio</span>
-                <span class="tag alt">Auto Beat Map</span>
-                <span class="tag">Rhythm Training</span>
+                <span class="tag">mp3 / wav / ogg / flac</span>
+                <span class="tag">auto beat detection</span>
             </div>
+        </div>
+
+        <div class="compat-note">
+            <strong>Heads up:</strong> Audio playback works best on desktop. Firefox is solid, Chrome works fine. Opera GX can randomly pause music due to its built-in limiter — not much we can do about that. Mobile is hit or miss.
         </div>
 
         <div class="recentSongs" id="recentSongs" style="display: none;">
@@ -790,8 +666,8 @@
         </div>
 
         <div class="dropZone" id="dropZone">
-            <span class="drop-icon">🎵</span>
-            <p>Drop an audio file or click to browse</p>
+            <span class="drop-icon">+</span>
+            <p>Drop an audio file here, or click to pick one</p>
             <p class="filename" id="fileName"></p>
         </div>
         <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a">
@@ -822,16 +698,16 @@
             </div>
 
             <div class="songId" id="songIdBox">
-                <div class="label">Your Song Code</div>
+                <div class="label">Song Code</div>
                 <div class="id" id="songIdDisplay">—</div>
-                <div class="hint">Tap to copy — paste this in Roblox</div>
+                <div class="hint">Click to copy — paste it in Roblox</div>
                 <div class="copyNotice" id="copyNotice">Copied!</div>
             </div>
 
             <div class="howHint">
-                <span class="step-num">1</span> Copy the code above
+                <span class="step-num">1</span> Copy the code
                 <span class="step-num">2</span> Paste it in-game
-                <span class="step-num">3</span> Music plays from here, synced to Roblox
+                <span class="step-num">3</span> Audio plays from here, synced to your game
             </div>
 
             <div class="player">
@@ -847,13 +723,13 @@
                     </div>
                 </div>
                 <div class="volumeRow">
-                    <span class="volIcon" id="muteToggle">🔊</span>
+                    <span class="volIcon" id="muteToggle">vol</span>
                     <input type="range" class="volumeBar" id="volumeBar" min="0" max="100" value="80" step="1">
                     <span class="volumeValue" id="volumeValue">80%</span>
                 </div>
             </div>
 
-            <div class="syncStatus" id="syncStatus">Waiting for Roblox to start...</div>
+            <div class="syncStatus" id="syncStatus">Waiting for Roblox...</div>
         </div>
 
         <div class="serverConfig">
@@ -863,47 +739,44 @@
 
         <div class="footer">
             <div class="solo-banner">
-                <div class="solo-title">Built solo with love</div>
-                <div class="solo-desc">Beat Mapper is a one-person passion project. No accounts, no tracking, no data collection — just upload and play.</div>
+                <div class="solo-title">One-person project</div>
+                <div class="solo-desc">No accounts, no tracking, no data collection. Upload a song, get a code, play in Roblox. That's it.</div>
 
-                <!-- Discord — primary CTA -->
                 <a href="https://discord.gg/Ck5pwSzJkK" class="discord-btn" target="_blank" rel="noopener noreferrer">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
-                    Join the Discord community
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                    Join the Discord
                 </a>
-                <p class="discord-sub">Get updates, share feedback, report bugs, and hang out with other players.</p>
+                <p class="discord-sub">Updates, bugs, feedback, whatever.</p>
 
-                <!-- Roblox game -->
                 <a href="https://www.roblox.com/games/123269768256003/Rhythmia" class="roblox-btn" target="_blank" rel="noopener noreferrer">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M4.686 0L0 19.314 19.314 24 24 4.686zm9.711 14.349l-4.976-1.328 1.328-4.976 4.976 1.328z"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M4.686 0L0 19.314 19.314 24 24 4.686zm9.711 14.349l-4.976-1.328 1.328-4.976 4.976 1.328z"/></svg>
                     Play Rhythmia on Roblox
                 </a>
-                <p class="roblox-sub">The rhythm game Beat Mapper was built for — tap notes, chase high scores.</p>
+                <p class="roblox-sub">The game this tool is for. Upload a song here, play it there.</p>
 
-                <!-- Ko-fi -->
-                <a href="https://ko-fi.com/appolodev" class="donate-btn" target="_blank" rel="noopener noreferrer">Support this project ☕</a>
+                <a href="https://ko-fi.com/appolodev" class="donate-btn" target="_blank" rel="noopener noreferrer">Support on Ko-fi</a>
             </div>
 
             <div class="legal-section">
                 <div class="legal-item">
                     <div class="legal-label">Not affiliated with Roblox</div>
-                    <div class="legal-text">Beat Mapper is an independent rhythm visualization and training tool. It is not affiliated with, endorsed by, or sponsored by Roblox Corporation. "Roblox" is a trademark of Roblox Corporation.</div>
+                    <div class="legal-text">Beat Mapper is an independent tool. Not affiliated with, endorsed by, or sponsored by Roblox Corporation. "Roblox" is a trademark of Roblox Corporation.</div>
                 </div>
                 <div class="legal-item">
                     <div class="legal-label">Privacy</div>
-                    <div class="legal-text">No account or login required. No personal information is collected or stored. Audio files are processed for beat analysis only, and temporary data is automatically deleted from the server.</div>
+                    <div class="legal-text">No accounts, no login. Audio is processed for beat analysis only and temp data gets deleted automatically.</div>
                 </div>
                 <div class="legal-item">
                     <div class="legal-label">Content policy</div>
-                    <div class="legal-text">This tool is intended for rhythm training and music visualization using audio you own or have the right to use. Files with inappropriate or restricted content in their filenames will be rejected.</div>
+                    <div class="legal-text">Use audio you own or have the right to use. Files with restricted content in their names get rejected.</div>
                 </div>
                 <div class="legal-item">
-                    <div class="legal-label">DMCA & copyright</div>
-                    <div class="legal-text">We respect intellectual property rights. If you believe content processed through this tool infringes your copyright, please submit a takedown request to <a href="mailto:dmca@beatmapper.app">dmca@beatmapper.app</a> with: (1) identification of the copyrighted work, (2) the Song ID or content in question, (3) your contact information, and (4) a statement of good faith belief. We will respond promptly to valid requests.</div>
+                    <div class="legal-label">DMCA</div>
+                    <div class="legal-text">If you believe content processed here infringes your copyright, contact <a href="mailto:dmca@beatmapper.app">dmca@beatmapper.app</a> with: (1) the copyrighted work, (2) the Song ID, (3) your contact info, (4) a good faith statement.</div>
                 </div>
             </div>
 
-            <div class="copyright-line">&copy; 2025 Beat Mapper. Independent project — not affiliated with Roblox Corporation.</div>
+            <div class="copyright-line">&copy; 2025 Beat Mapper</div>
         </div>
     </div>
 
@@ -1013,7 +886,7 @@
 
                 const removeEl = document.createElement("span");
                 removeEl.className = "removeBtn";
-                removeEl.textContent = "✕";
+                removeEl.textContent = "×";
                 removeEl.addEventListener("click", (e) => {
                     e.stopPropagation();
                     removerecentsong(song.id);
@@ -1070,7 +943,7 @@
             savedVolume = vol;
             isMuted = false;
             volumeValue.textContent = Math.round(vol * 100) + "%";
-            muteToggle.textContent = vol === 0 ? "🔇" : vol < 0.4 ? "🔉" : "🔊";
+            muteToggle.textContent = vol === 0 ? "mute" : "vol";
             try { localStorage.setItem("beatmapper_volume", vol.toString()); } catch {}
         });
 
@@ -1080,14 +953,14 @@
                 audioElement.volume = savedVolume;
                 volumeBar.value = Math.round(savedVolume * 100);
                 volumeValue.textContent = Math.round(savedVolume * 100) + "%";
-                muteToggle.textContent = savedVolume < 0.4 ? "🔉" : "🔊";
+                muteToggle.textContent = "vol";
             } else {
                 isMuted = true;
                 savedVolume = audioElement.volume || 0.8;
                 audioElement.volume = 0;
                 volumeBar.value = 0;
                 volumeValue.textContent = "0%";
-                muteToggle.textContent = "🔇";
+                muteToggle.textContent = "mute";
             }
         });
 
@@ -1140,7 +1013,7 @@
 
             const blocked = checkFilename(file.name);
             if (blocked) {
-                showFilterWarning("This file was rejected — filename contains restricted content. Please rename and try again.");
+                showFilterWarning("File rejected — restricted content in filename. Rename it and try again.");
                 selectedFile = null;
                 analyzeBtn.disabled = true;
                 document.getElementById("fileName").textContent = "";
@@ -1176,7 +1049,7 @@
             stopsyncpolling();
 
             const syncEl = document.getElementById("syncStatus");
-            syncEl.textContent = "Waiting for Roblox to start...";
+            syncEl.textContent = "Waiting for Roblox...";
             syncEl.classList.remove("active", "stopped");
         }
 
@@ -1190,7 +1063,7 @@
 
             const blocked = checkFilename(selectedFile.name);
             if (blocked) {
-                showFilterWarning("This file was rejected — filename contains restricted content. Please rename and try again.");
+                showFilterWarning("File rejected — restricted content in filename. Rename it and try again.");
                 analyzeBtn.disabled = true;
                 return;
             }
@@ -1210,16 +1083,16 @@
 
             try {
                 progressFill.style.width = "60%";
-                statusText.textContent = "Analyzing (this may take 30-60s)...";
+                statusText.textContent = "Analyzing (can take 30-60s)...";
 
                 const response = await fetch(`${serverUrl}/upload`, { method: "POST", body: formData });
 
                 const contentType = response.headers.get("content-type") || "";
                 if (!contentType.includes("application/json")) {
                     if (response.status === 502 || response.status === 504) {
-                        throw new Error("Server timed out analyzing the file. The song may be too long, or the server is still warming up — try again in 30s.");
+                        throw new Error("Server timed out. Song might be too long, or the server is waking up — try again in 30s.");
                     }
-                    throw new Error(`Server returned non-JSON response (HTTP ${response.status}). Check server logs.`);
+                    throw new Error(`Non-JSON response (HTTP ${response.status}). Check server logs.`);
                 }
 
                 const data = await response.json();
@@ -1290,7 +1163,7 @@
             syncTriggered = false;
 
             const syncEl = document.getElementById("syncStatus");
-            syncEl.textContent = "Waiting for Roblox to start...";
+            syncEl.textContent = "Waiting for Roblox...";
             syncEl.classList.remove("active", "stopped");
         });
 
@@ -1305,7 +1178,7 @@
             currentSongId = songId;
             const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
             const syncEl = document.getElementById("syncStatus");
-            syncEl.textContent = "Waiting for Roblox to start...";
+            syncEl.textContent = "Waiting for Roblox...";
             syncEl.classList.remove("active", "stopped");
 
             syncPollInterval = setInterval(async () => {
@@ -1325,14 +1198,14 @@
                         syncEl.classList.add("stopped");
 
                         setTimeout(() => {
-                            syncEl.textContent = "Waiting for Roblox to start...";
+                            syncEl.textContent = "Waiting for Roblox...";
                             syncEl.classList.remove("stopped");
                         }, 2000);
                     }
 
                     if (data.play) {
                         const seekOffset = data.elapsed || 0;
-                        console.log(`[Sync] Play signal received. Elapsed since signal: ${(seekOffset * 1000).toFixed(0)}ms — seeking to ${seekOffset.toFixed(3)}s`);
+                        console.log(`[Sync] Play signal. Elapsed: ${(seekOffset * 1000).toFixed(0)}ms — seeking to ${seekOffset.toFixed(3)}s`);
 
                         audioElement.currentTime = seekOffset;
                         audioElement.play().catch(() => {});
@@ -1340,7 +1213,7 @@
                         isPlaying = true;
                         syncTriggered = true;
 
-                        syncEl.textContent = `Playing (synced, ${(seekOffset * 1000).toFixed(0)}ms compensated)`;
+                        syncEl.textContent = `Synced (${(seekOffset * 1000).toFixed(0)}ms offset)`;
                         syncEl.classList.remove("stopped");
                         syncEl.classList.add("active");
                     }
