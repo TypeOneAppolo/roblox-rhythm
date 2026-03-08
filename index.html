@@ -36,7 +36,6 @@
             overflow-x: hidden;
         }
 
-        /* background atmosphere */
         body::before {
             content: '';
             position: fixed;
@@ -68,7 +67,6 @@
             z-index: 1;
         }
 
-        /* header */
         .header { margin-bottom: 32px; }
 
         .logo {
@@ -108,7 +106,6 @@
             margin-left: 42px;
         }
 
-        /* tags under subtitle */
         .tags {
             display: flex;
             gap: 6px;
@@ -133,7 +130,6 @@
             border-color: rgba(120, 80, 255, 0.1);
         }
 
-        /* recent songs */
         .recentSongs { margin-bottom: 20px; }
         .sectionLabel {
             color: var(--text-dim);
@@ -193,7 +189,6 @@
         }
         .recentItem .removeBtn:hover { color: var(--red); background: rgba(248, 113, 113, 0.1); }
 
-        /* drop zone */
         .dropZone {
             border: 2px dashed var(--border);
             border-radius: var(--radius);
@@ -240,7 +235,6 @@
         }
         #fileInput { display: none; }
 
-        /* buttons */
         .btn {
             width: 100%;
             padding: 13px;
@@ -277,7 +271,6 @@
             box-shadow: none;
         }
 
-        /* progress */
         .progressWrap { display: none; margin-bottom: 16px; }
         .progressWrap.show { display: block; }
         .progressBar {
@@ -299,7 +292,6 @@
             margin-top: 8px;
         }
 
-        /* results */
         .results { display: none; }
         .results.show { display: block; animation: fadeSlideIn 0.4s ease; }
 
@@ -338,7 +330,6 @@
             font-family: 'Space Mono', monospace;
         }
 
-        /* song id */
         .songId {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -399,7 +390,6 @@
         }
         .copyNotice.show { opacity: 1; }
 
-        /* how it works hint */
         .howHint {
             font-size: 0.72rem;
             color: var(--text-dim);
@@ -422,7 +412,6 @@
             vertical-align: middle;
         }
 
-        /* audio player */
         .player {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -496,7 +485,6 @@
             margin-top: 6px;
         }
 
-        /* volume row */
         .volumeRow {
             display: flex;
             align-items: center;
@@ -549,7 +537,6 @@
             flex-shrink: 0;
         }
 
-        /* sync status */
         .syncStatus {
             color: var(--text-dim);
             font-size: 0.8rem;
@@ -574,7 +561,6 @@
             background: rgba(248, 113, 113, 0.04);
         }
 
-        /* sync status pulse dot */
         .syncStatus::before {
             content: '';
             display: inline-block;
@@ -594,7 +580,6 @@
             50% { opacity: 0.3; }
         }
 
-        /* server config */
         .serverConfig {
             padding-top: 16px;
             border-top: 1px solid var(--border);
@@ -621,33 +606,103 @@
         }
         .serverConfig input:focus { outline: none; border-color: var(--border-hover); }
 
-        /* footer & legal */
         .footer {
             margin-top: 32px;
             padding-top: 24px;
             border-top: 1px solid var(--border);
         }
 
+        /* ---- solo banner ---- */
         .solo-banner {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 16px 18px;
+            padding: 20px 18px;
             margin-bottom: 16px;
             text-align: center;
         }
         .solo-banner .solo-title {
             color: var(--text-bright);
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.95rem;
+            font-weight: 700;
             margin-bottom: 4px;
         }
         .solo-banner .solo-desc {
             color: var(--text-dim);
             font-size: 0.76rem;
             line-height: 1.5;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
         }
+
+        /* Discord button */
+        .discord-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 8px;
+            background: #5865F2;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 6px;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 20px rgba(88, 101, 242, 0.35);
+        }
+        .discord-btn:hover {
+            background: #4752c4;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(88, 101, 242, 0.5);
+        }
+        .discord-sub {
+            color: var(--text-dim);
+            font-size: 0.73rem;
+            margin-bottom: 14px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        /* Roblox button */
+        .roblox-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 13px 20px;
+            border-radius: 8px;
+            background: #e2231a;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 6px;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 20px rgba(226, 35, 26, 0.3);
+        }
+        .roblox-btn:hover {
+            background: #c41e16;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(226, 35, 26, 0.4);
+        }
+        .roblox-sub {
+            color: var(--text-dim);
+            font-size: 0.73rem;
+            margin-bottom: 14px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        /* Ko-fi donate button */
         .donate-btn {
             display: inline-block;
             padding: 8px 20px;
@@ -668,9 +723,7 @@
             transform: translateY(-1px);
         }
 
-        .legal-section {
-            margin-top: 16px;
-        }
+        .legal-section { margin-top: 16px; }
         .legal-section .legal-item {
             padding: 10px 0;
             border-bottom: 1px solid var(--border);
@@ -701,39 +754,6 @@
             padding-bottom: 20px;
         }
 
-        .discord-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 13px 20px;
-            border-radius: 8px;
-            background: #5865F2;
-            color: #fff;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s;
-            margin-bottom: 10px;
-            letter-spacing: 0.01em;
-            box-shadow: 0 4px 20px rgba(88, 101, 242, 0.35);
-        }
-        .discord-btn:hover {
-            background: #4752c4;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px rgba(88, 101, 242, 0.45);
-        }
-        .discord-sub {
-            color: var(--text-dim);
-            font-size: 0.73rem;
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-
-        /* filter warning banner */
         .filterWarning {
             display: none;
             background: rgba(248, 113, 113, 0.08);
@@ -845,14 +865,23 @@
             <div class="solo-banner">
                 <div class="solo-title">Built solo with love</div>
                 <div class="solo-desc">Beat Mapper is a one-person passion project. No accounts, no tracking, no data collection — just upload and play.</div>
-            
+
+                <!-- Discord — primary CTA -->
                 <a href="https://discord.gg/Ck5pwSzJkK" class="discord-btn" target="_blank" rel="noopener noreferrer">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
                     Join the Discord community
                 </a>
                 <p class="discord-sub">Get updates, share feedback, report bugs, and hang out with other players.</p>
-            
-                <a href="https://ko-fi.com/appolodev" class="donate-btn" target="_blank" rel="noopener noreferrer">Support this project</a>
+
+                <!-- Roblox game -->
+                <a href="https://www.roblox.com/games/123269768256003/Rhythmia" class="roblox-btn" target="_blank" rel="noopener noreferrer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M4.686 0L0 19.314 19.314 24 24 4.686zm9.711 14.349l-4.976-1.328 1.328-4.976 4.976 1.328z"/></svg>
+                    Play Rhythmia on Roblox
+                </a>
+                <p class="roblox-sub">The rhythm game Beat Mapper was built for — tap notes, chase high scores.</p>
+
+                <!-- Ko-fi -->
+                <a href="https://ko-fi.com/appolodev" class="donate-btn" target="_blank" rel="noopener noreferrer">Support this project ☕</a>
             </div>
 
             <div class="legal-section">
@@ -881,9 +910,6 @@
     <audio id="audioElement"></audio>
 
     <script>
-        // ==========================================
-        // DOM refs
-        // ==========================================
         const dropZone = document.getElementById("dropZone");
         const fileInput = document.getElementById("fileInput");
         const analyzeBtn = document.getElementById("analyzeBtn");
@@ -1070,10 +1096,8 @@
         // CONTENT FILTER
         // ==========================================
         const BLOCKED_WORDS = [
-            // profanity
             'fuck','shit','bitch','ass','damn','cunt','dick','cock','pussy',
             'nigga','nigger','faggot','retard','whore','slut',
-            // restricted topics
             'suicide','kill','murder','rape','porn','hentai','xxx',
             'cocaine','heroin','meth','drug','gore','nazi','terrorist'
         ];
@@ -1164,7 +1188,6 @@
         analyzeBtn.addEventListener("click", async () => {
             if (!selectedFile) return;
 
-            // double-check filter
             const blocked = checkFilename(selectedFile.name);
             if (blocked) {
                 showFilterWarning("This file was rejected — filename contains restricted content. Please rename and try again.");
@@ -1273,7 +1296,7 @@
 
 
         // ==========================================
-        // SYNC POLLING — TIMESTAMP-COMPENSATED
+        // SYNC POLLING
         // ==========================================
 
         function startsyncpolling(songId) {
@@ -1321,9 +1344,7 @@
                         syncEl.classList.remove("stopped");
                         syncEl.classList.add("active");
                     }
-                } catch (e) {
-                    // server unreachable — keep trying silently
-                }
+                } catch (e) {}
             }, SYNC_POLL_MS);
         }
 
@@ -1350,10 +1371,6 @@
             return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
         }
 
-
-        // ==========================================
-        // BEFOREUNLOAD
-        // ==========================================
         window.addEventListener("beforeunload", (e) => {
             if (isPlaying && syncTriggered) {
                 e.preventDefault();
@@ -1363,5 +1380,3 @@
     </script>
 </body>
 </html>
-
-
