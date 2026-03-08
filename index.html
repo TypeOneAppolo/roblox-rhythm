@@ -3,252 +3,756 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beat Mapper</title>
+    <title>Beat Mapper — Rhythm Visualizer & Training Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
+        :root {
+            --bg: #0b0b10;
+            --surface: #12121a;
+            --border: #1e1e2a;
+            --border-hover: #2e2e40;
+            --text: #c8c8d4;
+            --text-dim: #5a5a70;
+            --text-bright: #eeeef4;
+            --accent: #ff6b4a;
+            --accent-glow: rgba(255, 107, 74, 0.15);
+            --accent-subtle: rgba(255, 107, 74, 0.08);
+            --green: #4ade80;
+            --red: #f87171;
+            --radius: 10px;
+        }
+
         body {
-            font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
-            background: #0e0e12;
-            color: #ccc;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow-x: hidden;
         }
-        
-        .container { max-width: 480px; width: 90%; padding: 40px 0; }
-        
-        h1 { font-size: 1.4rem; color: #eee; font-weight: 600; margin-bottom: 4px; }
-        .subtitle { color: #666; font-size: 0.85rem; margin-bottom: 32px; }
-        
-        /* upload area */
-        .dropZone {
-            border: 1px dashed #333;
+
+        /* background atmosphere */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -40%;
+            left: -20%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(ellipse, rgba(255, 107, 74, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            right: -20%;
+            width: 70%;
+            height: 70%;
+            background: radial-gradient(ellipse, rgba(120, 80, 255, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 92%;
+            padding: 40px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* header */
+        .header { margin-bottom: 32px; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
             border-radius: 8px;
-            padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            animation: pulse-icon 3s ease-in-out infinite;
+        }
+        @keyframes pulse-icon {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-weight: 400;
+            margin-left: 42px;
+        }
+
+        /* tags under subtitle */
+        .tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            margin-left: 42px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border: 1px solid rgba(255, 107, 74, 0.12);
+        }
+        .tag.alt {
+            background: rgba(120, 80, 255, 0.06);
+            color: #a78bfa;
+            border-color: rgba(120, 80, 255, 0.1);
+        }
+
+        /* recent songs */
+        .recentSongs { margin-bottom: 20px; }
+        .sectionLabel {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+
+        .recentItem {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 11px 14px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .recentItem:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        .recentItem .songInfo { overflow: hidden; flex: 1; min-width: 0; }
+        .recentItem .songName {
+            color: var(--text-bright);
+            font-size: 0.82rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .recentItem .songMeta { color: var(--text-dim); font-size: 0.7rem; margin-top: 2px; }
+        .recentItem .songCode {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent);
+            font-size: 0.72rem;
+            flex-shrink: 0;
+            margin-left: 12px;
+            background: var(--accent-subtle);
+            padding: 3px 8px;
+            border-radius: 5px;
+        }
+        .recentItem .removeBtn {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            margin-left: 8px;
+            cursor: pointer;
+            flex-shrink: 0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+        .recentItem .removeBtn:hover { color: var(--red); background: rgba(248, 113, 113, 0.1); }
+
+        /* drop zone */
+        .dropZone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 44px 20px;
             text-align: center;
             cursor: pointer;
-            transition: border-color 0.2s;
-            background: #13131a;
-            margin-bottom: 16px;
+            transition: all 0.25s ease;
+            background: var(--surface);
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
         }
-        .dropZone:hover, .dropZone.dragover { border-color: #555; }
-        .dropZone p { color: #555; font-size: 0.85rem; }
-        .dropZone .filename { color: #aaa; font-weight: 500; margin-top: 8px; font-size: 0.85rem; }
-        
+        .dropZone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .dropZone:hover::before, .dropZone.dragover::before { opacity: 1; }
+        .dropZone:hover, .dropZone.dragover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 107, 74, 0.06);
+        }
+
+        .dropZone .drop-icon {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            display: block;
+            filter: grayscale(0.3);
+        }
+        .dropZone p {
+            color: var(--text-dim);
+            font-size: 0.84rem;
+            position: relative;
+        }
+        .dropZone .filename {
+            color: var(--text-bright);
+            font-weight: 500;
+            margin-top: 8px;
+            font-size: 0.84rem;
+        }
         #fileInput { display: none; }
-        
+
         /* buttons */
         .btn {
             width: 100%;
-            padding: 12px;
+            padding: 13px;
             border: none;
-            border-radius: 6px;
-            background: #2a2a3a;
-            color: #ddd;
+            border-radius: var(--radius);
+            background: var(--accent);
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
             font-size: 0.9rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
             margin-bottom: 16px;
+            letter-spacing: 0.01em;
+            position: relative;
+            overflow: hidden;
         }
-        .btn:hover { background: #353548; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(255, 107, 74, 0.25);
+        }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         /* progress */
         .progressWrap { display: none; margin-bottom: 16px; }
         .progressWrap.show { display: block; }
-        .progressBar { height: 3px; background: #1a1a24; border-radius: 2px; overflow: hidden; }
-        .progressBar .fill { height: 100%; background: #667; border-radius: 2px; transition: width 0.3s; }
-        .statusText { color: #555; font-size: 0.8rem; margin-top: 6px; }
-        
+        .progressBar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progressBar .fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 12px rgba(255, 107, 74, 0.4);
+        }
+        .statusText {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            margin-top: 8px;
+        }
+
         /* results */
         .results { display: none; }
-        .results.show { display: block; }
-        
+        .results.show { display: block; animation: fadeSlideIn 0.4s ease; }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .stats {
             display: flex;
-            gap: 16px;
-            margin-bottom: 16px;
+            gap: 10px;
+            margin-bottom: 14px;
         }
         .stat {
             flex: 1;
-            background: #13131a;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #1e1e28;
+            background: var(--surface);
+            padding: 14px 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: border-color 0.2s;
         }
-        .stat .label { color: #555; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat .value { color: #ddd; font-size: 1.2rem; font-weight: 600; margin-top: 2px; }
-        
+        .stat:hover { border-color: var(--border-hover); }
+        .stat .label {
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .stat .value {
+            color: var(--text-bright);
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-top: 4px;
+            font-family: 'Space Mono', monospace;
+        }
+
         /* song id */
         .songId {
-            background: #13131a;
-            border: 1px solid #1e1e28;
-            border-radius: 6px;
-            padding: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .songId .label { color: #555; font-size: 0.75rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .songId .id { font-family: 'SF Mono', 'Consolas', monospace; font-size: 1.6rem; font-weight: 600; color: #eee; letter-spacing: 3px; }
-        .songId .hint { color: #444; font-size: 0.75rem; margin-top: 6px; }
-        .copyNotice { color: #5a5; font-size: 0.8rem; margin-top: 4px; opacity: 0; transition: opacity 0.2s; }
+        .songId::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .songId:hover::before { opacity: 1; }
+        .songId:hover {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .songId .label {
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        .songId .id {
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 4px;
+            position: relative;
+            text-shadow: 0 0 30px rgba(255, 107, 74, 0.2);
+        }
+        .songId .hint {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            margin-top: 8px;
+            position: relative;
+        }
+        .copyNotice {
+            color: var(--green);
+            font-size: 0.78rem;
+            font-weight: 500;
+            margin-top: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            position: relative;
+        }
         .copyNotice.show { opacity: 1; }
-        
+
+        /* how it works hint */
+        .howHint {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+        .howHint .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            background: var(--border);
+            color: var(--text);
+            border-radius: 50%;
+            margin: 0 2px;
+            vertical-align: middle;
+        }
+
         /* audio player */
         .player {
-            background: #13131a;
-            border: 1px solid #1e1e28;
-            border-radius: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 16px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
-        .player .trackName { color: #888; font-size: 0.8rem; margin-bottom: 10px; }
+        .player .trackName {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
         .playerControls { display: flex; align-items: center; gap: 12px; }
-        
+
         .playBtn {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            border: 1px solid #333;
-            background: #1a1a24;
-            color: #ccc;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-bright);
             font-size: 1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
         }
-        .playBtn:hover { border-color: #555; }
-        
+        .playBtn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 16px rgba(255, 107, 74, 0.12);
+        }
+
         .timeline { flex: 1; }
         .seekBar {
             width: 100%;
-            height: 3px;
+            height: 4px;
             -webkit-appearance: none;
             appearance: none;
-            background: #222;
+            background: var(--border);
             border-radius: 2px;
             outline: none;
             cursor: pointer;
         }
-        .seekBar::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #888; cursor: pointer; }
-        .seekBar::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: #888; cursor: pointer; border: none; }
-        
-        .timeDisplay { display: flex; justify-content: space-between; color: #444; font-size: 0.7rem; font-family: monospace; margin-top: 4px; }
-        
+        .seekBar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(255, 107, 74, 0.3);
+        }
+        .seekBar::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+        }
+        .timeDisplay {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            font-family: 'Space Mono', monospace;
+            margin-top: 6px;
+        }
+
         /* volume row */
         .volumeRow {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 10px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
         }
-        .volumeRow .volIcon { color: #555; font-size: 0.8rem; flex-shrink: 0; cursor: pointer; user-select: none; }
-        .volumeRow .volIcon:hover { color: #888; }
+        .volumeRow .volIcon {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s;
+        }
+        .volumeRow .volIcon:hover { color: var(--text-bright); }
         .volumeBar {
             flex: 1;
-            height: 3px;
+            height: 4px;
             -webkit-appearance: none;
             appearance: none;
-            background: #222;
+            background: var(--border);
             border-radius: 2px;
             outline: none;
             cursor: pointer;
         }
-        .volumeBar::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #666; cursor: pointer; }
-        .volumeBar::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: #666; cursor: pointer; border: none; }
-        .volumeValue { color: #444; font-size: 0.7rem; font-family: monospace; width: 30px; text-align: right; flex-shrink: 0; }
-        
+        .volumeBar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            cursor: pointer;
+        }
+        .volumeBar::-moz-range-thumb {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            cursor: pointer;
+            border: none;
+        }
+        .volumeValue {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            font-family: 'Space Mono', monospace;
+            width: 30px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
         /* sync status */
         .syncStatus {
-            color: #555;
+            color: var(--text-dim);
             font-size: 0.8rem;
+            font-weight: 500;
             text-align: center;
-            padding: 10px;
-            background: #13131a;
-            border-radius: 6px;
-            border: 1px solid #1e1e28;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
             margin-bottom: 16px;
+            transition: all 0.3s ease;
         }
-        .syncStatus.active { color: #6a6; border-color: #2a3a2a; }
-        .syncStatus.stopped { color: #a66; border-color: #3a2a2a; }
-        
-        /* recent songs */
-        .recentSongs { margin-bottom: 16px; }
-        .recentSongs .sectionLabel { color: #444; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .recentItem {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #13131a;
-            border: 1px solid #1e1e28;
-            border-radius: 6px;
-            padding: 10px 14px;
-            margin-bottom: 6px;
-            cursor: pointer;
-            transition: border-color 0.2s;
+        .syncStatus.active {
+            color: var(--green);
+            border-color: rgba(74, 222, 128, 0.2);
+            background: rgba(74, 222, 128, 0.04);
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.05);
         }
-        .recentItem:hover { border-color: #333; }
-        .recentItem .songInfo { overflow: hidden; }
-        .recentItem .songName { color: #aaa; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .recentItem .songMeta { color: #444; font-size: 0.7rem; margin-top: 2px; }
-        .recentItem .songCode { font-family: 'SF Mono', 'Consolas', monospace; color: #666; font-size: 0.75rem; flex-shrink: 0; margin-left: 12px; }
-        .recentItem .removeBtn {
-            color: #444;
-            font-size: 0.7rem;
-            margin-left: 8px;
-            cursor: pointer;
-            flex-shrink: 0;
-            padding: 2px 4px;
+        .syncStatus.stopped {
+            color: var(--red);
+            border-color: rgba(248, 113, 113, 0.2);
+            background: rgba(248, 113, 113, 0.04);
         }
-        .recentItem .removeBtn:hover { color: #a55; }
-        
+
+        /* sync status pulse dot */
+        .syncStatus::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            margin-right: 8px;
+            vertical-align: middle;
+            animation: blink 2s ease-in-out infinite;
+        }
+        .syncStatus.active::before { background: var(--green); }
+        .syncStatus.stopped::before { background: var(--red); animation: none; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
         /* server config */
-        .serverConfig { padding-top: 16px; border-top: 1px solid #1a1a24; margin-top: 8px; }
-        .serverConfig label { color: #444; font-size: 0.75rem; }
+        .serverConfig {
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+        }
+        .serverConfig label {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
         .serverConfig input {
             width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #222;
-            border-radius: 4px;
-            background: #13131a;
-            color: #aaa;
-            font-family: monospace;
-            font-size: 0.8rem;
-            margin-top: 4px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.78rem;
+            margin-top: 6px;
+            transition: border-color 0.2s;
         }
+        .serverConfig input:focus { outline: none; border-color: var(--border-hover); }
+
+        /* footer & legal */
+        .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .solo-banner {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .solo-banner .solo-title {
+            color: var(--text-bright);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .solo-banner .solo-desc {
+            color: var(--text-dim);
+            font-size: 0.76rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .donate-btn {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 6px;
+            background: rgba(255, 107, 74, 0.1);
+            border: 1px solid rgba(255, 107, 74, 0.2);
+            color: var(--accent);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .donate-btn:hover {
+            background: rgba(255, 107, 74, 0.18);
+            border-color: rgba(255, 107, 74, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .legal-section {
+            margin-top: 16px;
+        }
+        .legal-section .legal-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .legal-section .legal-item:last-child { border-bottom: none; }
+        .legal-section .legal-label {
+            color: var(--text);
+            font-size: 0.74rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .legal-section .legal-text {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            line-height: 1.55;
+        }
+        .legal-section .legal-text a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .legal-section .legal-text a:hover { text-decoration: underline; }
+
+        .copyright-line {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            margin-top: 16px;
+            padding-bottom: 20px;
+        }
+
+        /* filter warning banner */
+        .filterWarning {
+            display: none;
+            background: rgba(248, 113, 113, 0.08);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            color: var(--red);
+            font-size: 0.82rem;
+            text-align: center;
+            animation: fadeSlideIn 0.3s ease;
+        }
+        .filterWarning.show { display: block; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Beat Mapper</h1>
-        <p class="subtitle">Upload audio, get a rhythm map for Roblox</p>
-        
-        <!-- recent songs (populated from localStorage) -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">♪</div>
+                <h1>Beat Mapper</h1>
+            </div>
+            <p class="subtitle">Rhythm visualization & training tool — upload any audio, get a beat map.</p>
+            <div class="tags">
+                <span class="tag">Any Audio</span>
+                <span class="tag alt">Auto Beat Map</span>
+                <span class="tag">Rhythm Training</span>
+            </div>
+        </div>
+
         <div class="recentSongs" id="recentSongs" style="display: none;">
-            <div class="sectionLabel">Recent</div>
+            <div class="sectionLabel">Recent Songs</div>
             <div id="recentList"></div>
         </div>
-        
+
         <div class="dropZone" id="dropZone">
-            <p>Drop audio file or click to browse</p>
+            <span class="drop-icon">🎵</span>
+            <p>Drop an audio file or click to browse</p>
             <p class="filename" id="fileName"></p>
         </div>
         <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a">
-        
-        <button class="btn" id="analyzeBtn" disabled>Analyze</button>
-        
+
+        <div class="filterWarning" id="filterWarning"></div>
+
+        <button class="btn" id="analyzeBtn" disabled>Analyze Track</button>
+
         <div class="progressWrap" id="progressWrap">
             <div class="progressBar"><div class="fill" id="progressFill" style="width: 0%"></div></div>
             <p class="statusText" id="statusText">Uploading...</p>
         </div>
-        
+
         <div class="results" id="results">
             <div class="stats">
                 <div class="stat">
@@ -264,14 +768,20 @@
                     <div class="value" id="durationValue">—</div>
                 </div>
             </div>
-            
+
             <div class="songId" id="songIdBox">
-                <div class="label">Song ID</div>
+                <div class="label">Your Song Code</div>
                 <div class="id" id="songIdDisplay">—</div>
-                <div class="hint">Click to copy</div>
-                <div class="copyNotice" id="copyNotice">Copied</div>
+                <div class="hint">Tap to copy — paste this in Roblox</div>
+                <div class="copyNotice" id="copyNotice">Copied!</div>
             </div>
-            
+
+            <div class="howHint">
+                <span class="step-num">1</span> Copy the code above
+                <span class="step-num">2</span> Paste it in-game
+                <span class="step-num">3</span> Music plays from here, synced to Roblox
+            </div>
+
             <div class="player">
                 <div class="trackName" id="trackName">—</div>
                 <div class="playerControls">
@@ -284,20 +794,48 @@
                         </div>
                     </div>
                 </div>
-                <!-- volume -->
                 <div class="volumeRow">
                     <span class="volIcon" id="muteToggle">🔊</span>
                     <input type="range" class="volumeBar" id="volumeBar" min="0" max="100" value="80" step="1">
                     <span class="volumeValue" id="volumeValue">80%</span>
                 </div>
             </div>
-            
+
             <div class="syncStatus" id="syncStatus">Waiting for Roblox to start...</div>
         </div>
-        
+
         <div class="serverConfig">
             <label>Server</label>
-            <input type="text" id="serverUrl" value="https://roblox-rhythm.onrender.com">
+            <input type="text" id="serverUrl" value="https://appolopl-roblox-rhythm-api.hf.space/">
+        </div>
+
+        <div class="footer">
+            <div class="solo-banner">
+                <div class="solo-title">Built solo with love</div>
+                <div class="solo-desc">Beat Mapper is a one-person passion project. No accounts, no tracking, no data collection — just upload and play. If you enjoy it, a small donation helps keep the server running.</div>
+                <a href="#" class="donate-btn" id="donateBtn">Support this project</a>
+            </div>
+
+            <div class="legal-section">
+                <div class="legal-item">
+                    <div class="legal-label">Not affiliated with Roblox</div>
+                    <div class="legal-text">Beat Mapper is an independent rhythm visualization and training tool. It is not affiliated with, endorsed by, or sponsored by Roblox Corporation. "Roblox" is a trademark of Roblox Corporation.</div>
+                </div>
+                <div class="legal-item">
+                    <div class="legal-label">Privacy</div>
+                    <div class="legal-text">No account or login required. No personal information is collected or stored. Audio files are processed for beat analysis only, and temporary data is automatically deleted from the server.</div>
+                </div>
+                <div class="legal-item">
+                    <div class="legal-label">Content policy</div>
+                    <div class="legal-text">This tool is intended for rhythm training and music visualization using audio you own or have the right to use. Files with inappropriate or restricted content in their filenames will be rejected.</div>
+                </div>
+                <div class="legal-item">
+                    <div class="legal-label">DMCA & copyright</div>
+                    <div class="legal-text">We respect intellectual property rights. If you believe content processed through this tool infringes your copyright, please submit a takedown request to <a href="mailto:dmca@beatmapper.app">dmca@beatmapper.app</a> with: (1) identification of the copyrighted work, (2) the Song ID or content in question, (3) your contact information, and (4) a statement of good faith belief. We will respond promptly to valid requests.</div>
+                </div>
+            </div>
+
+            <div class="copyright-line">&copy; 2025 Beat Mapper. Independent project — not affiliated with Roblox Corporation.</div>
         </div>
     </div>
 
@@ -320,25 +858,30 @@
         const volumeBar = document.getElementById("volumeBar");
         const volumeValue = document.getElementById("volumeValue");
         const muteToggle = document.getElementById("muteToggle");
-        
+
         let selectedFile = null;
         let audioUrl = null;
         let isPlaying = false;
         let currentSongId = null;
 
-        // polling handle — ONE interval that runs whenever we have a songId,
-        // regardless of whether audio is playing or not
         let syncPollInterval = null;
-
-        // tracks whether audio was started by Roblox sync (not manual play)
         let syncTriggered = false;
 
-        // volume state
         let savedVolume = 0.8;
         let isMuted = false;
 
+        const SYNC_POLL_MS = 100;
+
+        let audioPreloaded = false;
+
+        function preloadAudio() {
+            if (!audioElement.src) return;
+            audioElement.load();
+            audioPreloaded = true;
+        }
+
         // ==========================================
-        // RECENT SONGS — localStorage, 3 max
+        // RECENT SONGS
         // ==========================================
         const RECENT_KEY = "beatmapper_recent";
         const MAX_RECENT = 3;
@@ -356,11 +899,8 @@
 
         function addrecentsong(songId, filename, tempo, totalBeats, duration) {
             let recent = loadrecentsongs();
-            // remove duplicate if exists
             recent = recent.filter(r => r.id !== songId);
-            // add to front
             recent.unshift({ id: songId, name: filename, tempo, beats: totalBeats, dur: duration, ts: Date.now() });
-            // cap at MAX_RECENT
             if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
             saverecentsongs(recent);
             renderrecentsongs();
@@ -418,22 +958,13 @@
                 item.appendChild(codeEl);
                 item.appendChild(removeEl);
 
-                // clicking a recent song: we can't replay the audio (file is gone)
-                // but we CAN copy the ID and start sync polling for it
                 item.addEventListener("click", () => {
-                    // put the ID in the results view so user can copy it
                     document.getElementById("songIdDisplay").textContent = song.id;
                     document.getElementById("tempoValue").textContent = song.tempo;
                     document.getElementById("beatsValue").textContent = song.beats;
                     document.getElementById("durationValue").textContent = formatTime(song.dur);
                     document.getElementById("trackName").textContent = song.name || song.id;
                     results.classList.add("show");
-
-                    // NOTE: we don't have the audio file anymore so the player
-                    // won't work for manual play — but sync from Roblox will still
-                    // work if the beat data is still on the server.
-                    // The user would need to re-upload audio for local playback.
-                    // If there's already an audio loaded from this session, keep it.
 
                     startsyncpolling(song.id);
 
@@ -447,7 +978,6 @@
             }
         }
 
-        // render on load
         renderrecentsongs();
 
 
@@ -455,7 +985,6 @@
         // VOLUME
         // ==========================================
 
-        // load saved volume from localStorage
         (function() {
             try {
                 const sv = localStorage.getItem("beatmapper_volume");
@@ -482,16 +1011,14 @@
 
         muteToggle.addEventListener("click", () => {
             if (isMuted) {
-                // unmute — restore previous volume
                 isMuted = false;
                 audioElement.volume = savedVolume;
                 volumeBar.value = Math.round(savedVolume * 100);
                 volumeValue.textContent = Math.round(savedVolume * 100) + "%";
                 muteToggle.textContent = savedVolume < 0.4 ? "🔉" : "🔊";
             } else {
-                // mute
                 isMuted = true;
-                savedVolume = audioElement.volume || 0.8; // remember current
+                savedVolume = audioElement.volume || 0.8;
                 audioElement.volume = 0;
                 volumeBar.value = 0;
                 volumeValue.textContent = "0%";
@@ -499,6 +1026,37 @@
             }
         });
 
+
+        // ==========================================
+        // CONTENT FILTER
+        // ==========================================
+        const BLOCKED_WORDS = [
+            // profanity
+            'fuck','shit','bitch','ass','damn','cunt','dick','cock','pussy',
+            'nigga','nigger','faggot','retard','whore','slut',
+            // restricted topics
+            'suicide','kill','murder','rape','porn','hentai','xxx',
+            'cocaine','heroin','meth','drug','gore','nazi','terrorist'
+        ];
+
+        function checkFilename(name) {
+            const lower = name.toLowerCase().replace(/[_\-\.\(\)\[\]]/g, ' ');
+            for (const word of BLOCKED_WORDS) {
+                const pattern = new RegExp('\\b' + word + '\\b', 'i');
+                if (pattern.test(lower)) return word;
+            }
+            return null;
+        }
+
+        function showFilterWarning(msg) {
+            const el = document.getElementById("filterWarning");
+            el.textContent = msg;
+            el.classList.add("show");
+        }
+        function hideFilterWarning() {
+            const el = document.getElementById("filterWarning");
+            el.classList.remove("show");
+        }
 
         // ==========================================
         // FILE SELECTION
@@ -513,101 +1071,129 @@
             if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
         });
         fileInput.addEventListener("change", () => { if (fileInput.files.length > 0) handleFileSelect(fileInput.files[0]); });
-        
+
         function handleFileSelect(file) {
+            hideFilterWarning();
+
+            const blocked = checkFilename(file.name);
+            if (blocked) {
+                showFilterWarning("This file was rejected — filename contains restricted content. Please rename and try again.");
+                selectedFile = null;
+                analyzeBtn.disabled = true;
+                document.getElementById("fileName").textContent = "";
+                fileInput.value = "";
+                return;
+            }
+
             selectedFile = file;
             document.getElementById("fileName").textContent = file.name;
             analyzeBtn.disabled = false;
             results.classList.remove("show");
 
-            // stop any existing playback + polling
             fullreset();
 
             if (audioUrl) URL.revokeObjectURL(audioUrl);
             audioUrl = URL.createObjectURL(file);
             audioElement.src = audioUrl;
+            preloadAudio();
         }
 
 
         // ==========================================
-        // FULL RESET — stops everything cleanly
+        // FULL RESET
         // ==========================================
         function fullreset() {
-            // stop audio
             audioElement.pause();
             audioElement.currentTime = 0;
             playBtn.textContent = "▶";
             isPlaying = false;
             syncTriggered = false;
+            audioPreloaded = false;
 
-            // stop polling
             stopsyncpolling();
 
-            // reset sync UI
             const syncEl = document.getElementById("syncStatus");
             syncEl.textContent = "Waiting for Roblox to start...";
             syncEl.classList.remove("active", "stopped");
         }
 
-        
+
         // ==========================================
         // UPLOAD + ANALYZE
         // ==========================================
 
         analyzeBtn.addEventListener("click", async () => {
             if (!selectedFile) return;
+
+            // double-check filter
+            const blocked = checkFilename(selectedFile.name);
+            if (blocked) {
+                showFilterWarning("This file was rejected — filename contains restricted content. Please rename and try again.");
+                analyzeBtn.disabled = true;
+                return;
+            }
+
             const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
-            
+
             progressWrap.classList.add("show");
             results.classList.remove("show");
             analyzeBtn.disabled = true;
             progressFill.style.width = "30%";
             statusText.textContent = "Uploading...";
 
-            // reset state from any previous song
             fullreset();
-            
+
             const formData = new FormData();
             formData.append("file", selectedFile);
-            
+
             try {
                 progressFill.style.width = "60%";
-                statusText.textContent = "Analyzing...";
-                
+                statusText.textContent = "Analyzing (this may take 30-60s)...";
+
                 const response = await fetch(`${serverUrl}/upload`, { method: "POST", body: formData });
+
+                const contentType = response.headers.get("content-type") || "";
+                if (!contentType.includes("application/json")) {
+                    if (response.status === 502 || response.status === 504) {
+                        throw new Error("Server timed out analyzing the file. The song may be too long, or the server is still warming up — try again in 30s.");
+                    }
+                    throw new Error(`Server returned non-JSON response (HTTP ${response.status}). Check server logs.`);
+                }
+
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
-                
+
                 progressFill.style.width = "100%";
                 statusText.textContent = "Done";
-                
+
                 document.getElementById("tempoValue").textContent = data.tempo;
                 document.getElementById("beatsValue").textContent = data.totalBeats;
                 document.getElementById("durationValue").textContent = formatTime(data.duration);
                 document.getElementById("songIdDisplay").textContent = data.songId;
                 document.getElementById("trackName").textContent = selectedFile.name;
 
-                // save to recent songs
                 addrecentsong(data.songId, selectedFile.name, data.tempo, data.totalBeats, data.duration);
-                
+
+                preloadAudio();
+
                 setTimeout(() => {
                     results.classList.add("show");
                     progressWrap.classList.remove("show");
                     analyzeBtn.disabled = false;
                     startsyncpolling(data.songId);
                 }, 400);
-                
+
             } catch (err) {
                 statusText.textContent = "Error: " + err.message;
                 analyzeBtn.disabled = false;
             }
         });
-        
+
 
         // ==========================================
         // AUDIO PLAYER
         // ==========================================
-        
+
         playBtn.addEventListener("click", () => {
             if (!audioElement.src) return;
             if (isPlaying) {
@@ -620,22 +1206,22 @@
                 isPlaying = true;
             }
         });
-        
+
         audioElement.addEventListener("timeupdate", () => {
             if (audioElement.duration) {
                 seekBar.value = (audioElement.currentTime / audioElement.duration) * 100;
                 document.getElementById("currentTime").textContent = formatTime(audioElement.currentTime);
             }
         });
-        
+
         audioElement.addEventListener("loadedmetadata", () => {
             document.getElementById("totalTime").textContent = formatTime(audioElement.duration);
         });
-        
+
         seekBar.addEventListener("input", () => {
             if (audioElement.duration) audioElement.currentTime = (seekBar.value / 100) * audioElement.duration;
         });
-        
+
         audioElement.addEventListener("ended", () => {
             playBtn.textContent = "▶";
             isPlaying = false;
@@ -644,17 +1230,14 @@
             const syncEl = document.getElementById("syncStatus");
             syncEl.textContent = "Waiting for Roblox to start...";
             syncEl.classList.remove("active", "stopped");
-            // polling keeps running so it catches the next start
         });
 
 
         // ==========================================
-        // SYNC POLLING — runs continuously while we have a songId
-        // Handles BOTH start AND stop signals
+        // SYNC POLLING — TIMESTAMP-COMPENSATED
         // ==========================================
 
         function startsyncpolling(songId) {
-            // kill any existing poll first
             stopsyncpolling();
 
             currentSongId = songId;
@@ -669,7 +1252,6 @@
                     const data = await res.json();
 
                     if (data.stop) {
-                        // ---- STOP SIGNAL ----
                         audioElement.pause();
                         audioElement.currentTime = 0;
                         playBtn.textContent = "▶";
@@ -680,7 +1262,6 @@
                         syncEl.classList.remove("active");
                         syncEl.classList.add("stopped");
 
-                        // after a moment, go back to waiting state
                         setTimeout(() => {
                             syncEl.textContent = "Waiting for Roblox to start...";
                             syncEl.classList.remove("stopped");
@@ -688,22 +1269,23 @@
                     }
 
                     if (data.play) {
-                        // ---- PLAY SIGNAL ----
-                        // if audio is already playing (rejoin case), reset it
-                        audioElement.currentTime = 0;
+                        const seekOffset = data.elapsed || 0;
+                        console.log(`[Sync] Play signal received. Elapsed since signal: ${(seekOffset * 1000).toFixed(0)}ms — seeking to ${seekOffset.toFixed(3)}s`);
+
+                        audioElement.currentTime = seekOffset;
                         audioElement.play().catch(() => {});
                         playBtn.textContent = "⏸";
                         isPlaying = true;
                         syncTriggered = true;
 
-                        syncEl.textContent = "Playing";
+                        syncEl.textContent = `Playing (synced, ${(seekOffset * 1000).toFixed(0)}ms compensated)`;
                         syncEl.classList.remove("stopped");
                         syncEl.classList.add("active");
                     }
                 } catch (e) {
-                    // server unreachable — don't spam errors, just keep trying
+                    // server unreachable — keep trying silently
                 }
-            }, 100);
+            }, SYNC_POLL_MS);
         }
 
         function stopsyncpolling() {
@@ -717,33 +1299,21 @@
         // ==========================================
         // COPY SONG ID
         // ==========================================
-        
+
         document.getElementById("songIdBox").addEventListener("click", () => {
             navigator.clipboard.writeText(document.getElementById("songIdDisplay").textContent);
             const notice = document.getElementById("copyNotice");
             notice.classList.add("show");
             setTimeout(() => notice.classList.remove("show"), 1500);
         });
-        
+
         function formatTime(s) {
             return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
         }
 
 
         // ==========================================
-        // PAGE VISIBILITY — pause polling when tab is hidden
-        // to avoid hammering the server, resume when tab is visible
-        // ==========================================
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) {
-                // don't stop polling entirely — just slow it down
-                // (the interval stays as-is, fetch will just queue up)
-            }
-        });
-
-
-        // ==========================================
-        // BEFOREUNLOAD — warn if audio is playing via sync
+        // BEFOREUNLOAD
         // ==========================================
         window.addEventListener("beforeunload", (e) => {
             if (isPlaying && syncTriggered) {
@@ -753,5 +1323,4 @@
         });
     </script>
 </body>
-
 </html>
