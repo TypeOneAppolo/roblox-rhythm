@@ -809,8 +809,7 @@
         const volumeBar = document.getElementById("volumeBar");
         const volumeValue = document.getElementById("volumeValue");
         const muteToggle = document.getElementById("muteToggle");
-        const densitySelect = document.getElementById("densitySelect");
-
+        
         let selectedFile = null;
         let audioUrl = null;
         let isPlaying = false;
@@ -1094,8 +1093,6 @@
 
             const formData = new FormData();
             formData.append("file", selectedFile);
-            // Include Density Level
-            formData.append("difficulty", densitySelect.value);
 
             try {
                 progressFill.style.width = "60%";
@@ -1269,4 +1266,5 @@
     </script>
 </body>
 </html>
+
 
