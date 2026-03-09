@@ -194,6 +194,45 @@
         }
         #fileInput { display: none; }
 
+        /* ---- OPTIONS ROW (DENSITY) ---- */
+        .optionsRow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            transition: border-color 0.2s;
+        }
+        .optionsRow:hover { border-color: var(--border-hover); }
+        .optionsRow label {
+            color: var(--text-bright);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+        .densitySelect {
+            background: var(--bg);
+            color: var(--text-bright);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 7px 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .densitySelect:focus, .densitySelect:hover {
+            border-color: var(--accent);
+        }
+        .densitySelect option {
+            background: var(--bg);
+            color: var(--text-bright);
+        }
+
         /* ---- BUTTON ---- */
         .btn {
             width: 100%;
@@ -530,7 +569,7 @@
             margin-bottom: 14px;
         }
 
-        .discord-btn {
+        .discord-btn, .roblox-btn {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -538,7 +577,6 @@
             width: 100%;
             padding: 12px 18px;
             border-radius: 6px;
-            background: #5865F2;
             color: #fff;
             font-family: 'DM Sans', sans-serif;
             font-size: 0.9rem;
@@ -548,35 +586,10 @@
             transition: opacity 0.15s;
             margin-bottom: 4px;
         }
-        .discord-btn:hover { opacity: 0.85; }
-        .discord-sub {
-            color: var(--text-dim);
-            font-size: 0.7rem;
-            margin-bottom: 12px;
-            line-height: 1.5;
-            text-align: center;
-        }
-
-        .roblox-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 12px 18px;
-            border-radius: 6px;
-            background: #e2231a;
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: opacity 0.15s;
-            margin-bottom: 4px;
-        }
-        .roblox-btn:hover { opacity: 0.85; }
-        .roblox-sub {
+        .discord-btn { background: #5865F2; }
+        .roblox-btn { background: #e2231a; font-size: 0.88rem; }
+        .discord-btn:hover, .roblox-btn:hover { opacity: 0.85; }
+        .discord-sub, .roblox-sub {
             color: var(--text-dim);
             font-size: 0.7rem;
             margin-bottom: 12px;
@@ -673,6 +686,16 @@
         <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a">
 
         <div class="filterWarning" id="filterWarning"></div>
+
+        <div class="optionsRow" id="optionsRow">
+            <label for="densitySelect">Note Density:</label>
+            <select id="densitySelect" class="densitySelect">
+                <option value="1">Easy (Fewer Notes)</option>
+                <option value="2" selected>Normal</option>
+                <option value="3">Hard (More Notes)</option>
+                <option value="4">Extreme (All Beats)</option>
+            </select>
+        </div>
 
         <button class="btn" id="analyzeBtn" disabled>Analyze Track</button>
 
@@ -796,6 +819,7 @@
         const volumeBar = document.getElementById("volumeBar");
         const volumeValue = document.getElementById("volumeValue");
         const muteToggle = document.getElementById("muteToggle");
+        const densitySelect = document.getElementById("densitySelect");
 
         let selectedFile = null;
         let audioUrl = null;
@@ -1080,6 +1104,8 @@
 
             const formData = new FormData();
             formData.append("file", selectedFile);
+            // Include Density Level
+            formData.append("difficulty", densitySelect.value);
 
             try {
                 progressFill.style.width = "60%";
