@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beat Mapper — Diagnostics</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0c;
+            --surface: #111114;
+            --border: #1c1c22;
+            --border-hover: #2a2a34;
+            --text: #a0a0ae;
+            --text-dim: #55555f;
+            --text-bright: #e4e4ec;
+            --accent: #e85d3a;
+            --green: #3fca6e;
+            --red: #e55555;
+            --blue: #4a9eed;
+            --yellow: #e8a73a;
+            --orange: #e07530;
+            --radius: 8px;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'DM Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 92%;
+            padding: 48px 0 80px;
+        }
+
+        /* ---- HEADER ---- */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            color: #fff;
+            font-weight: 700;
+            font-family: var(--mono);
+        }
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.03em;
+        }
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            margin-left: 38px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .tags {
+            display: flex;
+            gap: 6px;
+            margin: 12px 0 24px 38px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 3px 7px;
+            border-radius: 3px;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+
+        /* ---- CONNECTION ---- */
+        .conn-section { margin-bottom: 20px; }
+        .conn-section label {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .conn-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .conn-input {
+            flex: 1;
+            padding: 9px 11px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--surface);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .conn-input:focus { border-color: var(--border-hover); }
+        .conn-input::placeholder { color: var(--text-dim); }
+        .conn-input.short { max-width: 140px; }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            margin-bottom: 14px;
+        }
+        .btn:hover { opacity: 0.88; }
+        .btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        .error-msg {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--red);
+            margin-bottom: 12px;
+            display: none;
+        }
+        .error-msg.show { display: block; }
+
+        /* ---- RESULTS ---- */
+        .results { display: none; }
+        .results.show { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Grade row */
+        .grade-row {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+        .grade-circle {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.3s;
+        }
+        .grade-letter {
+            font-family: var(--mono);
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .grade-num {
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+        .meta-block {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            line-height: 1.8;
+            color: var(--text-dim);
+        }
+        .meta-block span { color: var(--text); }
+
+        /* Stats row — same as Beat Mapper */
+        .stats {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stat {
+            flex: 1;
+            background: var(--surface);
+            padding: 12px 10px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stat .label {
+            color: var(--text-dim);
+            font-size: 0.62rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .stat .value {
+            color: var(--text-bright);
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-top: 3px;
+            font-family: var(--mono);
+        }
+        .stat .note {
+            color: var(--text-dim);
+            font-size: 0.62rem;
+            margin-top: 2px;
+        }
+        .stat .bar {
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .stat .bar-fill {
+            height: 100%;
+            border-radius: 1px;
+            transition: width 0.6s ease;
+        }
+
+        /* Lane distribution */
+        .section-label {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+        .lane-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+        .lane-seg {
+            height: 26px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            color: #fff;
+            font-weight: 600;
+            min-width: 36px;
+            transition: flex 0.6s ease;
+        }
+        .lane-hint {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+        }
+
+        /* Issues */
+        .issues-header {
+            color: var(--text-bright);
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .issue-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+        .issue-item:last-child { border-bottom: none; }
+        .issue-icon {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            flex-shrink: 0;
+            width: 16px;
+            text-align: center;
+            margin-top: 1px;
+        }
+        .no-issues {
+            color: var(--green);
+            font-size: 0.78rem;
+            padding: 8px 0;
+        }
+
+        /* Copy section */
+        .copy-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .copy-title {
+            color: var(--text-bright);
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .copy-desc {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .copy-preview {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 10px 12px;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            max-height: 160px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .copy-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .copy-btn {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 5px;
+            background: var(--green);
+            color: #fff;
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .copy-btn:hover { opacity: 0.85; }
+        .copied-toast {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--green);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .copied-toast.show { opacity: 1; }
+
+        /* Footer */
+        .footer {
+            margin-top: 28px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            text-align: center;
+            line-height: 1.6;
+        }
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="logo">
+        <div class="logo-icon">B</div>
+        <h1>Diagnostics</h1>
+    </div>
+    <p class="subtitle">Analyze a beatmap's quality. Copy the report, paste it into Claude.</p>
+    <div class="tags">
+        <span class="tag">density</span>
+        <span class="tag">strain</span>
+        <span class="tag">lane balance</span>
+        <span class="tag">patterns</span>
+    </div>
+
+    <!-- Connection -->
+    <div class="conn-section">
+        <label>Server</label>
+        <input class="conn-input" type="text" id="inp_server" value="https://appolopl-roblox-rhythm-api.hf.space">
+    </div>
+    <div class="conn-section">
+        <label>Access Key</label>
+        <input class="conn-input short" type="password" id="inp_key" placeholder="your secret key">
+    </div>
+    <div class="conn-section">
+        <label>Song ID</label>
+        <div class="conn-row">
+            <input class="conn-input" type="text" id="inp_song" placeholder="e.g. a1b2c3d4">
+        </div>
+    </div>
+
+    <button class="btn" id="btn_analyze">Analyze</button>
+    <div class="error-msg" id="error"></div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+
+        <!-- Grade -->
+        <div class="grade-row">
+            <div class="grade-circle" id="grade_circle">
+                <span class="grade-letter" id="grade_letter">—</span>
+                <span class="grade-num" id="grade_num">—</span>
+            </div>
+            <div class="meta-block" id="meta_block"></div>
+        </div>
+
+        <!-- Metric cards -->
+        <div class="stats" id="stats_row_1"></div>
+        <div class="stats" id="stats_row_2"></div>
+
+        <!-- Lanes -->
+        <div class="section-label">Lane Distribution</div>
+        <div class="lane-bar" id="lane_bar"></div>
+        <div class="lane-hint">ideal: 25% each</div>
+
+        <!-- Issues -->
+        <div class="section-label">Issues</div>
+        <div id="issues_list"></div>
+
+        <!-- Copy for AI -->
+        <div class="copy-section">
+            <div class="copy-title">Copy for AI</div>
+            <div class="copy-desc">Paste this into Claude to get targeted fixes for your pipeline.</div>
+            <div class="copy-preview" id="ai_text">Loading...</div>
+            <div class="copy-row">
+                <button class="copy-btn" id="btn_copy">Copy to Clipboard</button>
+                <span class="copied-toast" id="copied_toast">Copied!</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Private tool — not linked anywhere on the site<br>
+        <a href="/">← Back to Beat Mapper</a>
+    </div>
+</div>
+
+<script>
+const GRADE_COLORS = { A: '#3fca6e', B: '#4a9eed', C: '#e8a73a', D: '#e07530', F: '#e55555' };
+const LANE_COLORS = { 1: '#e55555', 2: '#4a9eed', 3: '#3fca6e', 4: '#e8a73a' };
+
+let cachedText = '';
+
+function scoreColor(s) {
+    if (s >= 80) return 'var(--green)';
+    if (s >= 60) return 'var(--yellow)';
+    return 'var(--red)';
+}
+
+function scoreColorHex(s) {
+    if (s >= 80) return '#3fca6e';
+    if (s >= 60) return '#e8a73a';
+    return '#e55555';
+}
+
+document.getElementById('btn_analyze').addEventListener('click', runAnalysis);
+document.getElementById('inp_song').addEventListener('keydown', e => { if (e.key === 'Enter') runAnalysis(); });
+document.getElementById('btn_copy').addEventListener('click', copyForAI);
+
+async function runAnalysis() {
+    const server = document.getElementById('inp_server').value.replace(/\/+$/, '');
+    const key = document.getElementById('inp_key').value;
+    const songId = document.getElementById('inp_song').value.trim();
+    const btn = document.getElementById('btn_analyze');
+    const errEl = document.getElementById('error');
+
+    if (!songId) return;
+
+    errEl.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = 'Analyzing...';
+
+    try {
+        const res = await fetch(`${server}/beats/${songId}/diagnostics?key=${encodeURIComponent(key)}`);
+        if (!res.ok) throw new Error(`${res.status} — check song ID and key`);
+        const report = await res.json();
+        if (report.error) throw new Error(report.error);
+
+        const textRes = await fetch(`${server}/beats/${songId}/diagnostics?key=${encodeURIComponent(key)}&format=text`);
+        cachedText = await textRes.text();
+
+        render(report);
+        document.getElementById('ai_text').textContent = cachedText;
+        document.getElementById('results').classList.add('show');
+    } catch (e) {
+        errEl.textContent = e.message;
+        errEl.classList.add('show');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Analyze';
+}
+
+function render(r) {
+    const b = r.breakdown;
+
+    // Grade
+    const gc = GRADE_COLORS[r.grade] || '#888';
+    document.getElementById('grade_circle').style.borderColor = gc;
+    document.getElementById('grade_letter').style.color = gc;
+    document.getElementById('grade_letter').textContent = r.grade;
+    document.getElementById('grade_num').textContent = `${r.overall_score}/100`;
+
+    document.getElementById('meta_block').innerHTML = `
+        <div><span>${r.filename || '?'}</span></div>
+        <div>id <span>${r.songId}</span> · bpm <span>${r.tempo}</span></div>
+        <div>dur <span>${r.duration}s</span> · notes <span>${r.totalBeats}</span></div>
+    `;
+
+    // Metric row 1: density, lane balance, strain
+    const m1 = [
+        { label: 'Density', val: b.density.avg_nps, unit: ' nps', score: b.density.score, note: `peak ${b.density.peak_nps}` },
+        { label: 'Balance', val: b.lane_balance.score, unit: '', score: b.lane_balance.score, note: '' },
+        { label: 'Strain', val: b.strain.avg, unit: '', score: b.strain.score, note: `${b.strain.spike_count} spikes` },
+    ];
+    document.getElementById('stats_row_1').innerHTML = m1.map(m => statCard(m)).join('');
+
+    // Metric row 2: variety, holds, gaps
+    const m2 = [
+        { label: 'Variety', val: b.pattern_variety.score, unit: '', score: b.pattern_variety.score, note: '' },
+        { label: 'Holds', val: `${b.holds.ratio}%`, unit: '', score: b.holds.score, note: `avg ${b.holds.avg_duration}s` },
+        { label: 'Gaps', val: b.gaps.min_gap_ms, unit: 'ms', score: b.gaps.score, note: `${b.gaps.stacks} stacks` },
+    ];
+    document.getElementById('stats_row_2').innerHTML = m2.map(m => statCard(m)).join('');
+
+    // Lanes
+    const dist = b.lane_balance.distribution || {};
+    document.getElementById('lane_bar').innerHTML = Object.entries(dist).map(([lane, pct]) =>
+        `<div class="lane-seg" style="flex:${pct};background:${LANE_COLORS[lane]};opacity:0.85">L${lane} ${pct}%</div>`
+    ).join('');
+
+    // Issues
+    const issues = [];
+    if (b.density.peak_nps > 12) issues.push({ icon: '!', text: `Peak density ${b.density.peak_nps} nps — may be impossible`, color: 'var(--red)' });
+    if (b.density.dead_zones > 0) issues.push({ icon: '○', text: `${b.density.dead_zones} dead zone(s) — 2+ sec silence`, color: 'var(--yellow)' });
+    if (b.gaps.stacks > 0) issues.push({ icon: '!', text: `${b.gaps.stacks} note stack(s) under 50ms`, color: 'var(--red)' });
+    if (b.strain.spike_count > 5) issues.push({ icon: '~', text: `${b.strain.spike_count} strain spikes`, color: 'var(--orange)' });
+    Object.entries(dist).forEach(([lane, pct]) => {
+        if (pct > 35) issues.push({ icon: '◆', text: `Lane ${lane} overloaded at ${pct}%`, color: 'var(--yellow)' });
+    });
+    if (b.holds.suspicious_count > 0) issues.push({ icon: '~', text: `${b.holds.suspicious_count} suspicious hold(s)`, color: 'var(--yellow)' });
+    if (b.pattern_variety.score < 60) issues.push({ icon: '↻', text: `Low variety (${b.pattern_variety.score}) — map may feel robotic`, color: 'var(--yellow)' });
+
+    const il = document.getElementById('issues_list');
+    if (issues.length) {
+        il.innerHTML = issues.map(i =>
+            `<div class="issue-item"><span class="issue-icon" style="color:${i.color}">${i.icon}</span><span>${i.text}</span></div>`
+        ).join('');
+    } else {
+        il.innerHTML = '<div class="no-issues">No issues detected</div>';
+    }
+}
+
+function statCard(m) {
+    const c = scoreColorHex(m.score);
+    return `<div class="stat">
+        <div class="label">${m.label}</div>
+        <div class="value">${m.val}<span style="font-size:0.65rem;color:var(--text-dim)">${m.unit}</span></div>
+        ${m.note ? `<div class="note">${m.note}</div>` : ''}
+        <div class="bar"><div class="bar-fill" style="width:${m.score}%;background:${c}"></div></div>
+    </div>`;
+}
+
+function copyForAI() {
+    navigator.clipboard.writeText(cachedText).then(() => {
+        const t = document.getElementById('copied_toast');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 1500);
+    });
+}
+</script>
+</body>
+</html>
