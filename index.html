@@ -194,7 +194,7 @@
         }
         #fileInput { display: none; }
 
-        /* ---- OPTIONS ROW (DENSITY) ---- */
+        /* ---- OPTIONS ROW (RETENTION) ---- */
         .optionsRow {
             display: flex;
             align-items: center;
@@ -687,6 +687,16 @@
 
         <div class="filterWarning" id="filterWarning"></div>
 
+        <div class="optionsRow">
+            <label>Keep Code Active For</label>
+            <select class="densitySelect" id="retentionSelect">
+                <option value="2">2 Hours</option>
+                <option value="24">24 Hours</option>
+                <option value="168" selected>7 Days</option>
+                <option value="720">30 Days</option>
+            </select>
+        </div>
+
         <button class="btn" id="analyzeBtn" disabled>Analyze Track</button>
 
         <div class="progressWrap" id="progressWrap">
@@ -809,6 +819,7 @@
         const volumeBar = document.getElementById("volumeBar");
         const volumeValue = document.getElementById("volumeValue");
         const muteToggle = document.getElementById("muteToggle");
+        const retentionSelect = document.getElementById("retentionSelect");
         
         let selectedFile = null;
         let audioUrl = null;
@@ -1093,6 +1104,7 @@
 
             const formData = new FormData();
             formData.append("file", selectedFile);
+            formData.append("retention", retentionSelect.value);
 
             try {
                 progressFill.style.width = "60%";
@@ -1257,6 +1269,7 @@
             return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
         }
 
+
         window.addEventListener("beforeunload", (e) => {
             if (isPlaying && syncTriggered) {
                 e.preventDefault();
@@ -1266,5 +1279,4 @@
     </script>
 </body>
 </html>
-
 
