@@ -2071,7 +2071,7 @@
             const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
 
             try {
-                const res = await fetch(`${serverUrl}/beats/${songId}`);
+                const res = await fetch(`${serverUrl}/beats/${songId}?_=${Date.now()}`);
                 const data = await res.json();
                 if (data.error) throw new Error(data.error);
 
@@ -2411,3 +2411,4 @@
     </script>
 </body>
 </html>
+
