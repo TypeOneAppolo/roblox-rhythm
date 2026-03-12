@@ -194,45 +194,6 @@
         }
         #fileInput { display: none; }
 
-        /* ---- OPTIONS ROW (RETENTION) ---- */
-        .optionsRow {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 12px 14px;
-            margin-bottom: 14px;
-            transition: border-color 0.2s;
-        }
-        .optionsRow:hover { border-color: var(--border-hover); }
-        .optionsRow label {
-            color: var(--text-bright);
-            font-size: 0.82rem;
-            font-weight: 500;
-        }
-        .densitySelect {
-            background: var(--bg);
-            color: var(--text-bright);
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            padding: 7px 10px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.78rem;
-            font-weight: 500;
-            cursor: pointer;
-            outline: none;
-            transition: border-color 0.15s;
-        }
-        .densitySelect:focus, .densitySelect:hover {
-            border-color: var(--accent);
-        }
-        .densitySelect option {
-            background: var(--bg);
-            color: var(--text-bright);
-        }
-
         /* ---- BUTTON ---- */
         .btn {
             width: 100%;
@@ -252,6 +213,13 @@
         .btn:hover { opacity: 0.88; }
         .btn:active { opacity: 0.75; }
         .btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-secondary:hover { border-color: var(--border-hover); opacity: 1; color: var(--text-bright); }
 
         /* ---- PROGRESS ---- */
         .progressWrap { display: none; margin-bottom: 14px; }
@@ -653,6 +621,344 @@
             text-align: center;
         }
         .filterWarning.show { display: block; }
+
+
+        /* ========================================
+           NOTE EDITOR
+           ======================================== */
+
+        .ed-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: var(--bg);
+            flex-direction: column;
+        }
+        .ed-overlay.active { display: flex; }
+
+        .ed-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .ed-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+        .ed-btn:hover { border-color: var(--border-hover); color: var(--text-bright); }
+
+        .ed-btn-accent {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .ed-btn-accent:hover { opacity: 0.88; color: #fff; }
+
+        .ed-song-name {
+            color: var(--text-bright);
+            font-size: 0.82rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .ed-spacer { flex: 1; min-width: 0; }
+
+        .ed-play-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-bright);
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.15s;
+        }
+        .ed-play-btn:hover { border-color: var(--text-dim); }
+
+        .ed-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+
+        .ed-note-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            flex-shrink: 0;
+            padding: 4px 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .ed-save-status {
+            font-size: 0.7rem;
+            color: var(--green);
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .ed-save-status.show { opacity: 1; }
+
+        .ed-hints {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 6px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .ed-hint {
+            font-size: 0.62rem;
+            color: var(--text-dim);
+        }
+        .ed-hint kbd {
+            display: inline-block;
+            padding: 1px 5px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            background: var(--bg);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem;
+            color: var(--text);
+            margin: 0 2px;
+        }
+
+        .ed-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .ed-lane-labels {
+            width: 40px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ed-lane-label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+        }
+        .ed-lane-label:last-child { border-bottom: none; }
+
+        .ed-canvas-wrap {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            cursor: crosshair;
+        }
+
+        .ed-canvas-wrap canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+
+        /* ========================================
+           SAVE MODAL
+           ======================================== */
+
+        .save-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.75);
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        .save-modal-overlay.active { display: flex; }
+
+        .save-modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px 28px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+        }
+
+        .save-modal .modal-title {
+            color: var(--text-bright);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .save-modal .modal-sub {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .save-modal .modal-code-wrap {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 14px;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .save-modal .modal-code-wrap:hover { border-color: var(--accent); }
+
+        .save-modal .modal-code-label {
+            color: var(--text-dim);
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .save-modal .modal-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 3px;
+        }
+
+        .save-modal .modal-copy-notice {
+            color: var(--green);
+            font-size: 0.72rem;
+            font-weight: 500;
+            margin-top: 4px;
+            height: 18px;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .save-modal .modal-copy-notice.show { opacity: 1; }
+
+        .save-modal .modal-retention {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            margin-bottom: 14px;
+        }
+        .save-modal .modal-retention label {
+            color: var(--text-bright);
+            font-size: 0.78rem;
+            font-weight: 500;
+        }
+        .save-modal .modal-retention select {
+            background: var(--surface);
+            color: var(--text-bright);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 6px 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+        }
+        .save-modal .modal-retention select option {
+            background: var(--surface);
+            color: var(--text-bright);
+        }
+
+        .save-modal .modal-discord {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 11px 18px;
+            border-radius: 6px;
+            background: #5865F2;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.15s;
+            margin-bottom: 8px;
+        }
+        .save-modal .modal-discord:hover { opacity: 0.85; }
+
+        .save-modal .modal-discord-hint {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .save-modal .modal-close {
+            padding: 8px 20px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: transparent;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .save-modal .modal-close:hover { border-color: var(--border-hover); color: var(--text-bright); }
+
+
+        /* ========================================
+           CONFETTI CANVAS
+           ======================================== */
+
+        #confettiCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -686,16 +992,6 @@
         <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a">
 
         <div class="filterWarning" id="filterWarning"></div>
-
-        <div class="optionsRow">
-            <label>Keep Code Active For</label>
-            <select class="densitySelect" id="retentionSelect">
-                <option value="2">2 Hours</option>
-                <option value="24">24 Hours</option>
-                <option value="168" selected>7 Days</option>
-                <option value="720">30 Days</option>
-            </select>
-        </div>
 
         <button class="btn" id="analyzeBtn" disabled>Analyze Track</button>
 
@@ -732,6 +1028,8 @@
                 <span class="step-num">2</span> Paste it in-game
                 <span class="step-num">3</span> Audio plays from here, synced to your game
             </div>
+
+            <button class="btn btn-secondary" id="editBtn" style="margin-bottom: 12px;">Edit Beat Map</button>
 
             <div class="player">
                 <div class="trackName" id="trackName">—</div>
@@ -803,6 +1101,76 @@
         </div>
     </div>
 
+    <!-- ==========================================
+         NOTE EDITOR OVERLAY
+         ========================================== -->
+    <div class="ed-overlay" id="editorOverlay">
+        <div class="ed-toolbar">
+            <button class="ed-btn" id="edBack">← Back</button>
+            <span class="ed-song-name" id="edSongName">—</span>
+            <span class="ed-spacer"></span>
+            <button class="ed-play-btn" id="edPlay">▶</button>
+            <span class="ed-time" id="edTime">0:00 / 0:00</span>
+            <span class="ed-note-count" id="edNoteCount">0 notes</span>
+            <button class="ed-btn" id="edZoomOut">−</button>
+            <button class="ed-btn" id="edZoomIn">+</button>
+            <button class="ed-btn ed-btn-accent" id="edSave">Save</button>
+            <span class="ed-save-status" id="edSaveStatus">Saved</span>
+        </div>
+        <div class="ed-hints">
+            <span class="ed-hint"><kbd>Dbl-click</kbd> add</span>
+            <span class="ed-hint"><kbd>Click</kbd> select</span>
+            <span class="ed-hint"><kbd>Drag</kbd> move</span>
+            <span class="ed-hint"><kbd>Drag edge →</kbd> hold</span>
+            <span class="ed-hint"><kbd>Del</kbd> delete</span>
+            <span class="ed-hint"><kbd>Scroll</kbd> navigate</span>
+            <span class="ed-hint"><kbd>Ctrl+Scroll</kbd> zoom</span>
+            <span class="ed-hint"><kbd>Space</kbd> play/pause</span>
+        </div>
+        <div class="ed-body">
+            <div class="ed-lane-labels" id="edLaneLabels"></div>
+            <div class="ed-canvas-wrap" id="edCanvasWrap">
+                <canvas id="edCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         SAVE SUCCESS MODAL
+         ========================================== -->
+    <div class="save-modal-overlay" id="saveModalOverlay">
+        <div class="save-modal">
+            <div class="modal-title">Beat Map Saved!</div>
+            <div class="modal-sub">Your edited beat map is live. Copy the code and share it on Discord so others can play it.</div>
+
+            <div class="modal-retention">
+                <label>Keep Active For</label>
+                <select id="modalRetention">
+                    <option value="24">24 Hours</option>
+                    <option value="168" selected>7 Days</option>
+                    <option value="720">30 Days</option>
+                </select>
+            </div>
+
+            <div class="modal-code-wrap" id="modalCodeWrap">
+                <div class="modal-code-label">Song Code</div>
+                <div class="modal-code" id="modalCode">—</div>
+                <div class="modal-copy-notice" id="modalCopyNotice">Copied!</div>
+            </div>
+
+            <a href="https://discord.gg/Ck5pwSzJkK" class="modal-discord" target="_blank" rel="noopener noreferrer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                Post it on Discord
+            </a>
+            <div class="modal-discord-hint">Share your code so everyone can play your beat map</div>
+
+            <button class="modal-close" id="modalClose">Done</button>
+        </div>
+    </div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confettiCanvas"></canvas>
+
     <audio id="audioElement"></audio>
 
     <script>
@@ -819,8 +1187,7 @@
         const volumeBar = document.getElementById("volumeBar");
         const volumeValue = document.getElementById("volumeValue");
         const muteToggle = document.getElementById("muteToggle");
-        const retentionSelect = document.getElementById("retentionSelect");
-        
+
         let selectedFile = null;
         let audioUrl = null;
         let isPlaying = false;
@@ -841,6 +1208,82 @@
             audioElement.load();
             audioPreloaded = true;
         }
+
+
+        // ==========================================
+        // CONFETTI
+        // ==========================================
+
+        const confettiCanvas = document.getElementById("confettiCanvas");
+        const confettiCtx = confettiCanvas.getContext("2d");
+        let confettiPieces = [];
+        let confettiRunning = false;
+
+        function resizeConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        resizeConfetti();
+        window.addEventListener("resize", resizeConfetti);
+
+        function launchConfetti() {
+            confettiPieces = [];
+            const colors = ["#e85d3a", "#3fca6e", "#5865F2", "#c97dde", "#5b8def", "#f5c542", "#ff6b8a"];
+
+            for (let i = 0; i < 120; i++) {
+                confettiPieces.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: -20 - Math.random() * 200,
+                    w: 6 + Math.random() * 6,
+                    h: 4 + Math.random() * 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: 2 + Math.random() * 4,
+                    rot: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.15,
+                    gravity: 0.04 + Math.random() * 0.03,
+                    opacity: 1,
+                    decay: 0.003 + Math.random() * 0.002,
+                });
+            }
+
+            if (!confettiRunning) {
+                confettiRunning = true;
+                animateConfetti();
+            }
+        }
+
+        function animateConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+            let alive = false;
+            for (const p of confettiPieces) {
+                if (p.opacity <= 0) continue;
+                alive = true;
+
+                p.x += p.vx;
+                p.vy += p.gravity;
+                p.y += p.vy;
+                p.rot += p.rotSpeed;
+                p.opacity -= p.decay;
+
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate(p.rot);
+                confettiCtx.globalAlpha = Math.max(0, p.opacity);
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                confettiCtx.restore();
+            }
+
+            if (alive) {
+                requestAnimationFrame(animateConfetti);
+            } else {
+                confettiRunning = false;
+                confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            }
+        }
+
 
         // ==========================================
         // RECENT SONGS
@@ -1079,7 +1522,7 @@
 
 
         // ==========================================
-        // UPLOAD + ANALYZE
+        // UPLOAD + ANALYZE (no retention — always 1hr on server)
         // ==========================================
 
         analyzeBtn.addEventListener("click", async () => {
@@ -1104,7 +1547,6 @@
 
             const formData = new FormData();
             formData.append("file", selectedFile);
-            formData.append("retention", retentionSelect.value);
 
             try {
                 progressFill.style.width = "60%";
@@ -1269,14 +1711,703 @@
             return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
         }
 
-
         window.addEventListener("beforeunload", (e) => {
             if (isPlaying && syncTriggered) {
                 e.preventDefault();
                 e.returnValue = "";
             }
         });
+
+
+        // ==========================================
+        // SAVE MODAL
+        // ==========================================
+
+        const saveModalOverlay = document.getElementById("saveModalOverlay");
+
+        function showSaveModal(songId) {
+            document.getElementById("modalCode").textContent = songId;
+            document.getElementById("modalCopyNotice").classList.remove("show");
+            saveModalOverlay.classList.add("active");
+            launchConfetti();
+        }
+
+        function closeSaveModal() {
+            saveModalOverlay.classList.remove("active");
+        }
+
+        document.getElementById("modalCodeWrap").addEventListener("click", () => {
+            const code = document.getElementById("modalCode").textContent;
+            navigator.clipboard.writeText(code).catch(() => {});
+            const notice = document.getElementById("modalCopyNotice");
+            notice.classList.add("show");
+            setTimeout(() => notice.classList.remove("show"), 1500);
+        });
+
+        document.getElementById("modalClose").addEventListener("click", closeSaveModal);
+
+        saveModalOverlay.addEventListener("click", (e) => {
+            if (e.target === saveModalOverlay) closeSaveModal();
+        });
+
+
+        // ==========================================
+        // NOTE EDITOR
+        // ==========================================
+
+        const LANE_COLORS = ["#e85d3a", "#3fca6e", "#5b8def", "#c97dde"];
+        const LANE_BG = ["#0d0b0a", "#0a0d0b", "#0a0b0d", "#0c0a0d"];
+        const NOTE_WIDTH = 22;
+        const NOTE_PAD = 5;
+        const MIN_ZOOM = 30;
+        const MAX_ZOOM = 600;
+        const TIME_HEADER_H = 24;
+
+        const ed = {
+            active: false,
+            songId: null,
+            beats: [],
+            tempo: 120,
+            duration: 0,
+
+            pxPerSec: 120,
+            viewOffset: 0,
+
+            selectedIdx: -1,
+            dragging: false,
+            dragOffsetX: 0,
+            dragOrigTime: 0,
+            dragOrigLane: 0,
+            didDrag: false,
+
+            resizingHold: false,
+
+            lastClickTime: 0,
+            lastClickX: 0,
+            lastClickY: 0,
+
+            dirty: false,
+            animFrame: null,
+        };
+
+        const edCanvas = document.getElementById("edCanvas");
+        const edCtx = edCanvas.getContext("2d");
+        const edWrap = document.getElementById("edCanvasWrap");
+
+        function edGetLaneHeight() {
+            return (edCanvas.height / window.devicePixelRatio - TIME_HEADER_H) / 4;
+        }
+
+        function edTimeToX(t) {
+            return t * ed.pxPerSec - ed.viewOffset;
+        }
+
+        function edXToTime(x) {
+            return (x + ed.viewOffset) / ed.pxPerSec;
+        }
+
+        function edYToLane(y) {
+            const laneH = edGetLaneHeight();
+            const lane = Math.floor((y - TIME_HEADER_H) / laneH) + 1;
+            return Math.max(1, Math.min(4, lane));
+        }
+
+        function edLaneToY(lane) {
+            return TIME_HEADER_H + (lane - 1) * edGetLaneHeight();
+        }
+
+        function edNoteRect(note) {
+            const laneH = edGetLaneHeight();
+            const x = edTimeToX(note[0]);
+            const y = edLaneToY(note[2]) + NOTE_PAD;
+            const hold = note[3] || 0;
+            const w = hold > 0 ? Math.max(NOTE_WIDTH, hold * ed.pxPerSec) : NOTE_WIDTH;
+            const h = laneH - NOTE_PAD * 2;
+            return { x: x - NOTE_WIDTH / 2, y, w: w + NOTE_WIDTH / 2, h };
+        }
+
+        function edHitTest(mx, my) {
+            for (let i = ed.beats.length - 1; i >= 0; i--) {
+                const r = edNoteRect(ed.beats[i]);
+                if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        const HANDLE_W = 8;
+
+        function edHitHoldHandle(mx, my) {
+            if (ed.selectedIdx < 0) return false;
+            const note = ed.beats[ed.selectedIdx];
+            const r = edNoteRect(note);
+            const handleX = r.x + r.w - HANDLE_W;
+            return mx >= handleX && mx <= r.x + r.w + HANDLE_W && my >= r.y && my <= r.y + r.h;
+        }
+
+        function edSnapTime(t) {
+            if (ed.tempo <= 0) return t;
+            const beatLen = 60 / ed.tempo;
+            const subdivisions = [beatLen, beatLen / 2, beatLen / 3, beatLen / 4];
+
+            let best = t;
+            let bestDiff = Infinity;
+            for (const sub of subdivisions) {
+                const snapped = Math.round(t / sub) * sub;
+                const diff = Math.abs(t - snapped);
+                if (diff < bestDiff) {
+                    bestDiff = diff;
+                    best = snapped;
+                }
+            }
+
+            const snapThreshold = 0.5 / ed.pxPerSec * 60;
+            return bestDiff < snapThreshold ? Math.max(0, best) : Math.max(0, t);
+        }
+
+        function edUpdateNoteCount() {
+            document.getElementById("edNoteCount").textContent = `${ed.beats.length} notes`;
+        }
+
+        function edUpdateTime() {
+            const cur = audioElement.currentTime || 0;
+            const dur = ed.duration || audioElement.duration || 0;
+            document.getElementById("edTime").textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+        }
+
+
+        // ---- Rendering ----
+
+        function edRender() {
+            const dpr = window.devicePixelRatio || 1;
+            const W = edCanvas.width / dpr;
+            const H = edCanvas.height / dpr;
+            const laneH = edGetLaneHeight();
+            const ctx = edCtx;
+
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, W, H);
+
+            const visStart = ed.viewOffset / ed.pxPerSec;
+            const visEnd = (ed.viewOffset + W) / ed.pxPerSec;
+
+            for (let i = 0; i < 4; i++) {
+                ctx.fillStyle = LANE_BG[i];
+                ctx.fillRect(0, TIME_HEADER_H + i * laneH, W, laneH);
+
+                if (i > 0) {
+                    ctx.strokeStyle = "#1a1a20";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(0, TIME_HEADER_H + i * laneH);
+                    ctx.lineTo(W, TIME_HEADER_H + i * laneH);
+                    ctx.stroke();
+                }
+            }
+
+            if (ed.tempo > 0) {
+                const beatLen = 60 / ed.tempo;
+                const firstBeat = Math.floor(visStart / beatLen);
+
+                for (let b = firstBeat; b * beatLen <= visEnd; b++) {
+                    const t = b * beatLen;
+                    const x = edTimeToX(t);
+                    const isMeasure = b % 4 === 0;
+
+                    ctx.strokeStyle = isMeasure ? "#2a2a34" : "#161620";
+                    ctx.lineWidth = isMeasure ? 1 : 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(x, TIME_HEADER_H);
+                    ctx.lineTo(x, H);
+                    ctx.stroke();
+                }
+            }
+
+            ctx.fillStyle = "#0e0e12";
+            ctx.fillRect(0, 0, W, TIME_HEADER_H);
+            ctx.strokeStyle = "#1c1c22";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, TIME_HEADER_H);
+            ctx.lineTo(W, TIME_HEADER_H);
+            ctx.stroke();
+
+            const stepSec = edTimeStep();
+            const firstLabel = Math.floor(visStart / stepSec) * stepSec;
+            ctx.fillStyle = "#555560";
+            ctx.font = "10px 'JetBrains Mono', monospace";
+            ctx.textAlign = "center";
+
+            for (let t = firstLabel; t <= visEnd; t += stepSec) {
+                const x = edTimeToX(t);
+                ctx.fillText(formatTime(t), x, 16);
+
+                ctx.strokeStyle = "#1c1c22";
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(x, 20);
+                ctx.lineTo(x, TIME_HEADER_H);
+                ctx.stroke();
+            }
+
+            for (let i = 0; i < ed.beats.length; i++) {
+                const note = ed.beats[i];
+                if (note[0] < visStart - 2 || note[0] > visEnd + 2) continue;
+
+                const r = edNoteRect(note);
+                const lane = note[2];
+                const isSelected = i === ed.selectedIdx;
+                const color = LANE_COLORS[lane - 1] || LANE_COLORS[0];
+
+                if (note[3] > 0) {
+                    ctx.fillStyle = isSelected ? color : hexAlpha(color, 0.35);
+                    edRoundRect(ctx, r.x + NOTE_WIDTH / 2, r.y + 2, r.w - NOTE_WIDTH / 2, r.h - 4, 3);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = isSelected ? "#ffffff" : color;
+                edRoundRect(ctx, r.x, r.y, NOTE_WIDTH, r.h, 4);
+                ctx.fill();
+
+                if (isSelected) {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    edRoundRect(ctx, r.x - 1, r.y - 1, NOTE_WIDTH + 2, r.h + 2, 5);
+                    ctx.stroke();
+
+                    const handleX = r.x + r.w;
+                    ctx.fillStyle = "#ffffff";
+                    edRoundRect(ctx, handleX - 3, r.y + r.h * 0.2, 6, r.h * 0.6, 2);
+                    ctx.fill();
+                    ctx.fillStyle = hexAlpha(color, 0.6);
+                    edRoundRect(ctx, handleX - 2, r.y + r.h * 0.3, 4, r.h * 0.4, 1);
+                    ctx.fill();
+                }
+            }
+
+            if (audioElement.src) {
+                const px = edTimeToX(audioElement.currentTime);
+                if (px >= 0 && px <= W) {
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(px, 0);
+                    ctx.lineTo(px, H);
+                    ctx.stroke();
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.beginPath();
+                    ctx.moveTo(px - 4, 0);
+                    ctx.lineTo(px + 4, 0);
+                    ctx.lineTo(px, 6);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+
+            edUpdateTime();
+
+            if (ed.active) {
+                ed.animFrame = requestAnimationFrame(edRender);
+            }
+        }
+
+        function edTimeStep() {
+            if (ed.pxPerSec > 300) return 1;
+            if (ed.pxPerSec > 100) return 2;
+            if (ed.pxPerSec > 50) return 5;
+            return 10;
+        }
+
+        function edRoundRect(ctx, x, y, w, h, r) {
+            r = Math.min(r, w / 2, h / 2);
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        function hexAlpha(hex, alpha) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+
+        function edFollowPlayhead() {
+            if (!audioElement.paused && ed.active) {
+                const W = edCanvas.width / (window.devicePixelRatio || 1);
+                const px = audioElement.currentTime * ed.pxPerSec;
+                const margin = W * 0.3;
+
+                if (px - ed.viewOffset > W - margin || px < ed.viewOffset) {
+                    ed.viewOffset = Math.max(0, px - margin);
+                }
+            }
+        }
+
+
+        function edResizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = edWrap.getBoundingClientRect();
+            edCanvas.width = rect.width * dpr;
+            edCanvas.height = rect.height * dpr;
+            edCanvas.style.width = rect.width + "px";
+            edCanvas.style.height = rect.height + "px";
+        }
+
+
+        // ---- Open / Close ----
+
+        async function edOpen(songId) {
+            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+
+            try {
+                const res = await fetch(`${serverUrl}/beats/${songId}`);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                ed.songId = songId;
+                ed.beats = data.beats.map(b => [...b]);
+                ed.tempo = data.tempo || 120;
+                ed.duration = data.duration || 0;
+                ed.selectedIdx = -1;
+                ed.dragging = false;
+                ed.dirty = false;
+                ed.viewOffset = 0;
+
+                document.getElementById("edSongName").textContent = data.filename || songId;
+                edUpdateNoteCount();
+
+                audioElement.pause();
+                playBtn.textContent = "▶";
+                isPlaying = false;
+                stopsyncpolling();
+
+                const labelsEl = document.getElementById("edLaneLabels");
+                labelsEl.innerHTML = "";
+                const headerSpacer = document.createElement("div");
+                headerSpacer.style.height = TIME_HEADER_H + "px";
+                headerSpacer.style.flexShrink = "0";
+                headerSpacer.style.borderBottom = "1px solid var(--border)";
+                labelsEl.appendChild(headerSpacer);
+
+                for (let i = 0; i < 4; i++) {
+                    const label = document.createElement("div");
+                    label.className = "ed-lane-label";
+                    label.style.color = LANE_COLORS[i];
+                    label.textContent = i + 1;
+                    labelsEl.appendChild(label);
+                }
+
+                document.getElementById("editorOverlay").classList.add("active");
+                document.body.style.overflow = "hidden";
+                ed.active = true;
+
+                edResizeCanvas();
+                edRender();
+
+            } catch (err) {
+                alert("Failed to load beat data: " + err.message);
+            }
+        }
+
+        function edClose() {
+            ed.active = false;
+            if (ed.animFrame) cancelAnimationFrame(ed.animFrame);
+            document.getElementById("editorOverlay").classList.remove("active");
+            document.body.style.overflow = "";
+
+            audioElement.pause();
+            audioElement.currentTime = 0;
+            document.getElementById("edPlay").textContent = "▶";
+
+            if (ed.dirty && ed.songId === currentSongId) {
+                document.getElementById("beatsValue").textContent = ed.beats.length;
+            }
+
+            if (currentSongId) {
+                startsyncpolling(currentSongId);
+            }
+        }
+
+
+        // ---- Mouse interaction ----
+
+        edCanvas.addEventListener("mousedown", (e) => {
+            const rect = edCanvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            if (my < TIME_HEADER_H) {
+                const t = edXToTime(mx);
+                audioElement.currentTime = Math.max(0, Math.min(t, ed.duration));
+                return;
+            }
+
+            const now = Date.now();
+            const isDoubleClick =
+                now - ed.lastClickTime < 350 &&
+                Math.abs(mx - ed.lastClickX) < 10 &&
+                Math.abs(my - ed.lastClickY) < 10;
+            ed.lastClickTime = now;
+            ed.lastClickX = mx;
+            ed.lastClickY = my;
+
+            const hitIdx = edHitTest(mx, my);
+
+            if (edHitHoldHandle(mx, my)) {
+                ed.resizingHold = true;
+                ed.dragging = false;
+                edWrap.style.cursor = "ew-resize";
+                return;
+            }
+
+            if (isDoubleClick && hitIdx === -1) {
+                const time = edSnapTime(edXToTime(mx));
+                const lane = edYToLane(my);
+                edAddNote(time, lane);
+                return;
+            }
+
+            if (hitIdx >= 0) {
+                ed.selectedIdx = hitIdx;
+                ed.dragging = true;
+                ed.didDrag = false;
+                ed.dragOffsetX = mx - edTimeToX(ed.beats[hitIdx][0]);
+                ed.dragOrigTime = ed.beats[hitIdx][0];
+                ed.dragOrigLane = ed.beats[hitIdx][2];
+                edWrap.style.cursor = "grabbing";
+            } else {
+                ed.selectedIdx = -1;
+            }
+        });
+
+        edCanvas.addEventListener("mousemove", (e) => {
+            const rect = edCanvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            if (ed.resizingHold && ed.selectedIdx >= 0) {
+                const note = ed.beats[ed.selectedIdx];
+                const endTime = edSnapTime(edXToTime(mx));
+                const holdDuration = Math.max(0, endTime - note[0]);
+                note[3] = Math.round(holdDuration * 1000) / 1000;
+                ed.dirty = true;
+                return;
+            }
+
+            if (ed.dragging && ed.selectedIdx >= 0) {
+                const note = ed.beats[ed.selectedIdx];
+                const newTime = edSnapTime(edXToTime(mx - ed.dragOffsetX));
+                const newLane = edYToLane(my);
+
+                if (Math.abs(newTime - ed.dragOrigTime) > 0.01 || newLane !== ed.dragOrigLane) {
+                    ed.didDrag = true;
+                }
+
+                note[0] = Math.max(0, newTime);
+                note[2] = newLane;
+                return;
+            }
+
+            if (edHitHoldHandle(mx, my)) {
+                edWrap.style.cursor = "ew-resize";
+            } else if (edHitTest(mx, my) >= 0) {
+                edWrap.style.cursor = "grab";
+            } else {
+                edWrap.style.cursor = "crosshair";
+            }
+        });
+
+        window.addEventListener("mouseup", () => {
+            if (ed.resizingHold) {
+                ed.resizingHold = false;
+                edWrap.style.cursor = "crosshair";
+                return;
+            }
+
+            if (ed.dragging) {
+                ed.dragging = false;
+                edWrap.style.cursor = "crosshair";
+
+                if (ed.didDrag) {
+                    const moved = ed.beats[ed.selectedIdx];
+                    ed.beats.sort((a, b) => a[0] - b[0]);
+                    ed.selectedIdx = ed.beats.indexOf(moved);
+                    ed.dirty = true;
+                }
+            }
+        });
+
+
+        // ---- Scroll / Zoom ----
+
+        edWrap.addEventListener("wheel", (e) => {
+            e.preventDefault();
+
+            if (e.ctrlKey || e.metaKey) {
+                const rect = edCanvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const timeAtCursor = edXToTime(mx);
+
+                const zoomFactor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+                ed.pxPerSec = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, ed.pxPerSec * zoomFactor));
+
+                ed.viewOffset = timeAtCursor * ed.pxPerSec - mx;
+            } else {
+                ed.viewOffset += e.deltaY * 1.5;
+            }
+
+            ed.viewOffset = Math.max(0, ed.viewOffset);
+        }, { passive: false });
+
+
+        // ---- Keyboard ----
+
+        window.addEventListener("keydown", (e) => {
+            if (!ed.active) return;
+
+            if (e.code === "Space") {
+                e.preventDefault();
+                edTogglePlay();
+                return;
+            }
+
+            if (e.code === "Delete" || e.code === "Backspace") {
+                e.preventDefault();
+                edDeleteSelected();
+                return;
+            }
+        });
+
+
+        // ---- Note operations ----
+
+        function edAddNote(time, lane) {
+            const note = [
+                Math.round(time * 10000) / 10000,
+                0.5,
+                lane,
+                0,
+                0.5
+            ];
+
+            ed.beats.push(note);
+            ed.beats.sort((a, b) => a[0] - b[0]);
+            ed.selectedIdx = ed.beats.indexOf(note);
+            ed.dirty = true;
+            edUpdateNoteCount();
+        }
+
+        function edDeleteSelected() {
+            if (ed.selectedIdx < 0 || ed.selectedIdx >= ed.beats.length) return;
+
+            ed.beats.splice(ed.selectedIdx, 1);
+            ed.selectedIdx = -1;
+            ed.dirty = true;
+            edUpdateNoteCount();
+        }
+
+
+        // ---- Playback ----
+
+        function edTogglePlay() {
+            if (!audioElement.src) return;
+
+            if (audioElement.paused) {
+                audioElement.play();
+                document.getElementById("edPlay").textContent = "⏸";
+                edFollowLoop();
+            } else {
+                audioElement.pause();
+                document.getElementById("edPlay").textContent = "▶";
+            }
+        }
+
+        function edFollowLoop() {
+            if (!ed.active || audioElement.paused) return;
+            edFollowPlayhead();
+            requestAnimationFrame(edFollowLoop);
+        }
+
+        audioElement.addEventListener("ended", () => {
+            if (ed.active) {
+                document.getElementById("edPlay").textContent = "▶";
+            }
+        });
+
+
+        // ---- Save (with retention from modal + confetti) ----
+
+        async function edSave() {
+            if (!ed.songId) return;
+            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+            const retention = parseInt(document.getElementById("modalRetention").value) || 168;
+
+            try {
+                const res = await fetch(`${serverUrl}/beats/${ed.songId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        beats: ed.beats,
+                        retention: retention
+                    })
+                });
+
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                ed.dirty = false;
+                edUpdateNoteCount();
+                document.getElementById("beatsValue").textContent = ed.beats.length;
+
+                // Show the save modal with confetti
+                showSaveModal(ed.songId);
+
+            } catch (err) {
+                alert("Save failed: " + err.message);
+            }
+        }
+
+
+        // ---- Toolbar bindings ----
+
+        document.getElementById("edBack").addEventListener("click", () => {
+            if (ed.dirty && !confirm("You have unsaved changes. Leave anyway?")) return;
+            edClose();
+        });
+
+        document.getElementById("edPlay").addEventListener("click", edTogglePlay);
+
+        document.getElementById("edZoomIn").addEventListener("click", () => {
+            ed.pxPerSec = Math.min(MAX_ZOOM, ed.pxPerSec * 1.3);
+        });
+
+        document.getElementById("edZoomOut").addEventListener("click", () => {
+            ed.pxPerSec = Math.max(MIN_ZOOM, ed.pxPerSec / 1.3);
+        });
+
+        document.getElementById("edSave").addEventListener("click", edSave);
+
+        document.getElementById("editBtn").addEventListener("click", () => {
+            const songId = document.getElementById("songIdDisplay").textContent;
+            if (songId && songId !== "—") {
+                edOpen(songId);
+            }
+        });
+
+        window.addEventListener("resize", () => {
+            if (ed.active) edResizeCanvas();
+        });
     </script>
 </body>
 </html>
-
