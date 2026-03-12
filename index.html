@@ -2354,6 +2354,7 @@
             const retention = parseInt(document.getElementById("modalRetention").value) || 168;
 
             try {
+                console.log("[edSave] Sending", ed.beats.length, "beats. First 5:", JSON.stringify(ed.beats.slice(0, 5)));
                 const res = await fetch(`${serverUrl}/beats/${ed.songId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -2411,4 +2412,5 @@
     </script>
 </body>
 </html>
+
 
