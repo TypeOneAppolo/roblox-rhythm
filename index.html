@@ -1093,7 +1093,7 @@
                 </div>
                 <div class="legal-item">
                     <div class="legal-label">DMCA</div>
-                    <div class="legal-text">If you believe content processed here infringes your copyright, contact <a href="mailto:dmca@beatmapper.app">dmca@beatmapper.app</a> with: (1) the copyrighted work, (2) the Song ID, (3) your contact info, (4) a good faith statement.</div>
+                    <div class="legal-text">If you believe content processed here infringes your copyright, contact <a href="/cdn-cgi/l/email-protection#5e3a333d3f1e3c3b3f2a333f2e2e3b2c703f2e2e"><span class="__cf_email__" data-cfemail="52363f313312303733263f33222237207c332222">[email&#160;protected]</span></a> with: (1) the copyrighted work, (2) the Song ID, (3) your contact info, (4) a good faith statement.</div>
                 </div>
             </div>
 
@@ -1114,6 +1114,7 @@
             <span class="ed-note-count" id="edNoteCount">0 notes</span>
             <button class="ed-btn" id="edZoomOut">−</button>
             <button class="ed-btn" id="edZoomIn">+</button>
+            <button class="ed-btn" id="edExport" title="Download beats as JSON backup">Export</button>
             <button class="ed-btn ed-btn-accent" id="edSave">Save</button>
             <span class="ed-save-status" id="edSaveStatus">Saved</span>
         </div>
@@ -1173,7 +1174,7 @@
 
     <audio id="audioElement"></audio>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         const dropZone = document.getElementById("dropZone");
         const fileInput = document.getElementById("fileInput");
         const analyzeBtn = document.getElementById("analyzeBtn");
@@ -1712,7 +1713,11 @@
         }
 
         window.addEventListener("beforeunload", (e) => {
-            if (isPlaying && syncTriggered) {
+            if (ed.active && ed.dirty && ed.songId) {
+                autosaveDraft();
+                e.preventDefault();
+                e.returnValue = "";
+            } else if (isPlaying && syncTriggered) {
                 e.preventDefault();
                 e.returnValue = "";
             }
@@ -1789,6 +1794,56 @@
             dirty: false,
             animFrame: null,
         };
+
+        // ---- Autosave / crash recovery ----
+        const AUTOSAVE_KEY = "rhythmia_draft_";
+        const AUTOSAVE_INTERVAL = 20000;
+        let autosaveTimer = null;
+
+        async function autosaveDraft() {
+            if (!ed.active || !ed.songId || !ed.dirty) return;
+            try {
+                const draft = {
+                    songId: ed.songId,
+                    beats: ed.beats,
+                    tempo: ed.tempo,
+                    duration: ed.duration,
+                    filename: document.getElementById("edSongName").textContent,
+                    savedAt: Date.now()
+                };
+                localStorage.setItem(AUTOSAVE_KEY + ed.songId, JSON.stringify(draft));
+            } catch {}
+            try {
+                const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+                await fetch(`${serverUrl}/beats/${ed.songId}/draft`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ beats: ed.beats })
+                });
+            } catch {}
+            console.log("[autosave] Draft backed up:", ed.beats.length, "notes");
+        }
+
+        function clearAutosave(songId) {
+            try { localStorage.removeItem(AUTOSAVE_KEY + songId); } catch {}
+        }
+
+        function getAutosaveDraft(songId) {
+            try {
+                const raw = localStorage.getItem(AUTOSAVE_KEY + songId);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch { return null; }
+        }
+
+        function startAutosave() {
+            stopAutosave();
+            autosaveTimer = setInterval(autosaveDraft, AUTOSAVE_INTERVAL);
+        }
+
+        function stopAutosave() {
+            if (autosaveTimer) { clearInterval(autosaveTimer); autosaveTimer = null; }
+        }
 
         const edCanvas = document.getElementById("edCanvas");
         const edCtx = edCanvas.getContext("2d");
@@ -2084,6 +2139,32 @@
                 ed.dirty = false;
                 ed.viewOffset = 0;
 
+                // Crash recovery: check for unsaved drafts
+                let draft = getAutosaveDraft(songId);
+                if (!draft) {
+                    try {
+                        const draftRes = await fetch(`${serverUrl}/beats/${songId}/draft?_=${Date.now()}`);
+                        if (draftRes.ok) {
+                            const serverDraft = await draftRes.json();
+                            if (serverDraft.beats) {
+                                draft = { beats: serverDraft.beats, savedAt: serverDraft.timestamp * 1000 };
+                            }
+                        }
+                    } catch {}
+                }
+                if (draft && draft.beats && draft.savedAt) {
+                    const ago = Math.round((Date.now() - draft.savedAt) / 1000);
+                    const mins = Math.floor(ago / 60);
+                    const label = mins > 0 ? `${mins}m ${ago % 60}s ago` : `${ago}s ago`;
+                    if (confirm(
+                        `Found an unsaved draft (${draft.beats.length} notes, from ${label}).\n\nRestore it? (Cancel = use server version)`
+                    )) {
+                        ed.beats = draft.beats.map(b => [...b]);
+                        ed.dirty = true;
+                    }
+                }
+                startAutosave();
+
                 document.getElementById("edSongName").textContent = data.filename || songId;
                 edUpdateNoteCount();
 
@@ -2122,6 +2203,7 @@
 
         function edClose() {
             ed.active = false;
+            stopAutosave();
             if (ed.animFrame) cancelAnimationFrame(ed.animFrame);
             document.getElementById("editorOverlay").classList.remove("active");
             document.body.style.overflow = "";
@@ -2368,6 +2450,7 @@
                 if (data.error) throw new Error(data.error);
 
                 ed.dirty = false;
+                clearAutosave(ed.songId);
                 edUpdateNoteCount();
                 document.getElementById("beatsValue").textContent = ed.beats.length;
 
@@ -2399,6 +2482,25 @@
 
         document.getElementById("edSave").addEventListener("click", edSave);
 
+        document.addEventListener("keydown", (e) => {
+            if (ed.active && (e.ctrlKey || e.metaKey) && e.key === "s") {
+                e.preventDefault();
+                edSave();
+            }
+        });
+
+        document.getElementById("edExport").addEventListener("click", () => {
+            if (!ed.songId) return;
+            const blob = new Blob([JSON.stringify({
+                songId: ed.songId, beats: ed.beats, tempo: ed.tempo,
+                duration: ed.duration, exportedAt: new Date().toISOString()
+            }, null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `rhythmia_${ed.songId}_backup.json`;
+            a.click();
+        });
+
         document.getElementById("editBtn").addEventListener("click", () => {
             const songId = document.getElementById("songIdDisplay").textContent;
             if (songId && songId !== "—") {
@@ -2412,5 +2514,3 @@
     </script>
 </body>
 </html>
-
-
