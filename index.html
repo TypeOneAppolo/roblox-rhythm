@@ -1818,57 +1818,79 @@
         document.getElementById("codeLoadBtn").addEventListener("click", async () => {
             const code = document.getElementById("codeInput").value.trim().toLowerCase();
             const statusEl = document.getElementById("codeStatus");
+            const loadBtn = document.getElementById("codeLoadBtn");
 
             if (!code) return;
 
+            loadBtn.disabled = true;
             statusEl.textContent = "Loading...";
             statusEl.className = "code-status";
 
             const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
 
-            try {
-                const res = await fetch(`${serverUrl}/beats/${code}?_=${Date.now()}`);
-                if (!res.ok) throw new Error("Song not found or expired");
-                const data = await res.json();
-                if (data.error) throw new Error(data.error);
+            // Retry up to 3 times — HF Space may be asleep
+            let lastError = null;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    if (attempt > 1) statusEl.textContent = `Waking server... (attempt ${attempt}/3)`;
 
-                // Set code mode
-                loadedFromCode = code;
+                    const res = await fetch(`${serverUrl}/beats/${code}?_=${Date.now()}`);
+                    if (!res.ok) {
+                        if (res.status === 502 || res.status === 503 || res.status === 504) {
+                            lastError = "Server waking up";
+                            await new Promise(r => setTimeout(r, 2000));
+                            continue;
+                        }
+                        throw new Error("Song not found or expired");
+                    }
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error);
 
-                // Populate results
-                document.getElementById("tempoValue").textContent = data.tempo;
-                document.getElementById("beatsValue").textContent = data.totalBeats;
-                document.getElementById("durationValue").textContent = formatTime(data.duration);
-                document.getElementById("songIdDisplay").textContent = code;
-                document.getElementById("lbLink").href = "/leaderboard/?id=" + code;
-                document.getElementById("trackName").textContent = data.filename || code;
+                    // Set code mode
+                    loadedFromCode = code;
 
-                // Hide analyze button, update dropzone
-                document.getElementById("analyzeBtn").style.display = "none";
-                document.getElementById("dropText").textContent = "Drop your copy of the audio file here for playback";
+                    // Populate results
+                    document.getElementById("tempoValue").textContent = data.tempo;
+                    document.getElementById("beatsValue").textContent = data.totalBeats;
+                    document.getElementById("durationValue").textContent = formatTime(data.duration);
+                    document.getElementById("songIdDisplay").textContent = code;
+                    document.getElementById("lbLink").href = "/leaderboard/?id=" + code;
+                    document.getElementById("trackName").textContent = data.filename || code;
 
-                // Add audio-needed banner inside results if no audio yet
-                const existing = document.getElementById("audioNeeded");
-                if (existing) existing.remove();
+                    // Hide analyze button, update dropzone
+                    document.getElementById("analyzeBtn").style.display = "none";
+                    document.getElementById("dropText").textContent = "Drop your copy of the audio file here for playback";
 
-                const banner = document.createElement("div");
-                banner.id = "audioNeeded";
-                banner.className = "audio-needed";
-                banner.textContent = "Drop your audio file above to enable playback & sync";
+                    // Add audio-needed banner inside results if no audio yet
+                    const existing = document.getElementById("audioNeeded");
+                    if (existing) existing.remove();
 
-                // Insert before the player section
-                const player = results.querySelector(".player");
-                if (player) results.insertBefore(banner, player);
+                    const banner = document.createElement("div");
+                    banner.id = "audioNeeded";
+                    banner.className = "audio-needed";
+                    banner.textContent = "Drop your audio file above to enable playback & sync";
 
-                results.classList.add("show");
-                statusEl.textContent = "Loaded — drop audio above to play";
-                statusEl.className = "code-status ok";
+                    const player = results.querySelector(".player");
+                    if (player) results.insertBefore(banner, player);
 
-            } catch (e) {
-                statusEl.textContent = e.message;
-                statusEl.className = "code-status error";
-                loadedFromCode = null;
+                    results.classList.add("show");
+                    statusEl.textContent = "Loaded — drop audio above to play";
+                    statusEl.className = "code-status ok";
+                    loadBtn.disabled = false;
+                    return;
+
+                } catch (e) {
+                    lastError = e.message;
+                    if (attempt < 3) {
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                }
             }
+
+            statusEl.textContent = lastError || "Failed to load — try again";
+            statusEl.className = "code-status error";
+            loadedFromCode = null;
+            loadBtn.disabled = false;
         });
 
         // Allow Enter key in code input
