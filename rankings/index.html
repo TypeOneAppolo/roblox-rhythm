@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rankings — Rhythmia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0c;
+            --surface: #111114;
+            --border: #1c1c22;
+            --border-hover: #2a2a34;
+            --text: #a0a0ae;
+            --text-dim: #55555f;
+            --text-bright: #e4e4ec;
+            --accent: #e85d3a;
+            --green: #3fca6e;
+            --red: #e55555;
+            --gold: #f0c040;
+            --silver: #b0b0c0;
+            --bronze: #cd7f32;
+            --radius: 8px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 560px;
+            width: 92%;
+            padding: 48px 0 40px;
+        }
+
+        .header { margin-bottom: 28px; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            color: #fff;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            text-decoration: none;
+        }
+
+        .logo a { text-decoration: none; color: var(--text-bright); }
+
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.03em;
+        }
+
+        .back-link {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            text-decoration: none;
+            margin-left: 38px;
+            transition: color 0.15s;
+        }
+        .back-link:hover { color: var(--text); }
+        .nav-sep { color: var(--border); font-size: 0.68rem; margin: 0 4px; }
+
+        /* ---- TABS ---- */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 3px;
+        }
+        .tab {
+            flex: 1;
+            padding: 9px 0;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: color 0.15s, background 0.15s;
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active {
+            color: var(--text-bright);
+            background: var(--bg);
+        }
+
+        /* ---- SECTION LABEL ---- */
+        .section-label {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 10px;
+        }
+
+        /* ---- PLAYER RANKINGS TABLE ---- */
+        .rank-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .rank-table th {
+            color: var(--text-dim);
+            font-size: 0.62rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+            padding: 0 10px 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .rank-table th.r { text-align: right; }
+        .rank-table th.c { text-align: center; }
+
+        .rank-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            vertical-align: middle;
+        }
+        .rank-table tr:last-child td { border-bottom: none; }
+        .rank-table tbody tr { transition: background 0.12s; }
+        .rank-table tbody tr:hover { background: rgba(255,255,255,0.015); }
+
+        .rank-cell {
+            width: 36px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.78rem;
+            color: var(--text-dim);
+        }
+        .rank-1 { color: var(--gold); }
+        .rank-2 { color: var(--silver); }
+        .rank-3 { color: var(--bronze); }
+
+        .player-name {
+            color: var(--text-bright);
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.15s;
+        }
+        .player-name:hover { color: var(--accent); }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+        .mono.bright { color: var(--text-bright); font-weight: 700; }
+        .r { text-align: right; }
+        .c { text-align: center; }
+
+        .fc-count {
+            color: var(--green);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ---- SONG LIST ---- */
+        .song-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .song-item:hover { border-color: var(--border-hover); }
+
+        .song-left {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .song-title {
+            color: var(--text-bright);
+            font-size: 0.82rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .song-sub {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            margin-top: 2px;
+        }
+        .song-sub span {
+            color: var(--text);
+            font-weight: 500;
+        }
+        .song-right {
+            flex-shrink: 0;
+            margin-left: 14px;
+            text-align: right;
+        }
+        .song-players {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+        .song-players-label {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .song-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--accent);
+            margin-top: 2px;
+        }
+
+        /* ---- STATES ---- */
+        .loading {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+        .error-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--red);
+            font-size: 0.85rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .footer {
+            margin-top: 28px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .copyright-line {
+            color: var(--text-dim);
+            font-size: 0.62rem;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.25s ease both; }
+
+        #panel-players, #panel-songs { display: none; }
+        #panel-players.active, #panel-songs.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <a href="/" class="logo-icon">R</a>
+                <a href="/"><h1>Rhythmia</h1></a>
+            </div>
+            <a href="/" class="back-link">&larr; Beat Mapper</a>
+            <span class="nav-sep">/</span>
+            <a href="/rankings/" class="back-link" style="color:var(--text)">Rankings</a>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="players">Top Players</div>
+            <div class="tab" data-tab="songs">Popular Songs</div>
+        </div>
+
+        <div id="panel-players" class="active">
+            <div class="loading">Loading rankings...</div>
+        </div>
+
+        <div id="panel-songs">
+            <div class="loading">Loading songs...</div>
+        </div>
+
+        <div class="footer">
+            <div class="copyright-line">Rhythmia &mdash; any song, any time</div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'https://appolopl-roblox-rhythm-api.hf.space';
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.dataset.tab;
+                document.getElementById('panel-players').classList.toggle('active', target === 'players');
+                document.getElementById('panel-songs').classList.toggle('active', target === 'songs');
+            });
+        });
+
+        // Load both on page load
+        loadPlayers();
+        loadSongs();
+
+        async function loadPlayers() {
+            const panel = document.getElementById('panel-players');
+            try {
+                const res = await fetch(`${API}/rankings?limit=50`);
+                if (!res.ok) throw new Error('Failed to load');
+                const data = await res.json();
+                renderPlayers(panel, data.rankings);
+            } catch (e) {
+                panel.innerHTML = `<div class="error-state">${e.message}</div>`;
+            }
+        }
+
+        async function loadSongs() {
+            const panel = document.getElementById('panel-songs');
+            try {
+                const res = await fetch(`${API}/songs/popular?limit=50`);
+                if (!res.ok) throw new Error('Failed to load');
+                const data = await res.json();
+                renderSongs(panel, data.songs);
+            } catch (e) {
+                panel.innerHTML = `<div class="error-state">${e.message}</div>`;
+            }
+        }
+
+        function renderPlayers(panel, rankings) {
+            if (!rankings || rankings.length === 0) {
+                panel.innerHTML = '<div class="empty-state">No scores recorded yet. Be the first!</div>';
+                return;
+            }
+
+            let html = '<div class="fade-in">';
+            html += '<div class="section-label">Global rankings</div>';
+            html += `<table class="rank-table">
+                <thead><tr>
+                    <th class="c">#</th>
+                    <th>Player</th>
+                    <th class="c">Songs</th>
+                    <th class="c">Acc</th>
+                    <th class="c">FCs</th>
+                    <th class="r">Score</th>
+                </tr></thead><tbody>`;
+
+            for (const p of rankings) {
+                const rc = p.rank <= 3 ? ` rank-${p.rank}` : '';
+                html += `<tr>
+                    <td class="rank-cell${rc}">${p.rank}</td>
+                    <td><span class="player-name" onclick="window.location='/player/?id=${p.user_id}'">${esc(p.username)}</span></td>
+                    <td class="c mono">${p.songs_played}</td>
+                    <td class="c mono">${p.avg_accuracy}%</td>
+                    <td class="c fc-count">${p.total_fcs}</td>
+                    <td class="r mono bright">${compactNum(p.total_score)}</td>
+                </tr>`;
+            }
+
+            html += '</tbody></table></div>';
+            panel.innerHTML = html;
+        }
+
+        function renderSongs(panel, songs) {
+            if (!songs || songs.length === 0) {
+                panel.innerHTML = '<div class="empty-state">No songs played yet.</div>';
+                return;
+            }
+
+            let html = '<div class="fade-in">';
+            html += '<div class="section-label">Most played beatmaps</div>';
+
+            for (const s of songs) {
+                html += `<div class="song-item" onclick="window.location='/leaderboard/?id=${esc(s.song_id)}'">
+                    <div class="song-left">
+                        <div class="song-title">${esc(s.song_name)}</div>
+                        <div class="song-sub">Top score by <span>${esc(s.top_player)}</span></div>
+                        <div class="song-code">${esc(s.song_id)}</div>
+                    </div>
+                    <div class="song-right">
+                        <div class="song-players">${s.player_count}</div>
+                        <div class="song-players-label">${s.player_count === 1 ? 'player' : 'players'}</div>
+                    </div>
+                </div>`;
+            }
+
+            html += '</div>';
+            panel.innerHTML = html;
+        }
+
+        function compactNum(n) {
+            if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+            if (n >= 10_000) return (n / 1_000).toFixed(1) + 'K';
+            return n.toLocaleString();
+        }
+
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s || '';
+            return d.innerHTML;
+        }
+    </script>
+</body>
+</html>
