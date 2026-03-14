@@ -113,6 +113,15 @@
 
         /* ---- RECENT SONGS ---- */
         .recentSongs { margin-bottom: 20px; }
+        .recentList-scroll {
+            max-height: 220px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-hover) transparent;
+        }
+        .recentList-scroll::-webkit-scrollbar { width: 4px; }
+        .recentList-scroll::-webkit-scrollbar-track { background: transparent; }
+        .recentList-scroll::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 2px; }
         .sectionLabel {
             color: var(--text-dim);
             font-size: 0.68rem;
@@ -680,20 +689,33 @@
         }
 
         .donate-btn {
-            display: inline-block;
-            padding: 7px 16px;
-            border-radius: 5px;
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 6px;
+            background: #ff5e5b;
+            border: none;
+            color: #fff;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.78rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 700;
             cursor: pointer;
             text-decoration: none;
-            transition: border-color 0.15s, color 0.15s;
+            transition: opacity 0.15s;
+            margin-top: 8px;
+            margin-bottom: 4px;
         }
-        .donate-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .donate-btn:hover { opacity: 0.85; }
+        .donate-sub {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            text-align: center;
+        }
 
         .legal-section { margin-top: 14px; }
         .legal-section .legal-item {
@@ -1048,6 +1070,43 @@
             line-height: 1.5;
         }
 
+        .save-modal .modal-yt-wrap {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        .save-modal .modal-yt-wrap label {
+            color: var(--text-dim);
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .save-modal .modal-yt-wrap input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--surface);
+            color: var(--text-bright);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .save-modal .modal-yt-wrap input:focus { border-color: var(--border-hover); }
+        .save-modal .modal-yt-wrap input::placeholder { color: var(--text-dim); font-family: 'DM Sans', sans-serif; }
+        .save-modal .modal-yt-hint {
+            color: var(--text-dim);
+            font-size: 0.62rem;
+            margin-top: 4px;
+        }
+
         .save-modal .modal-close {
             padding: 8px 20px;
             border: 1px solid var(--border);
@@ -1152,7 +1211,9 @@
 
         <div class="recentSongs" id="recentSongs" style="display: none;">
             <div class="sectionLabel">Recent Songs</div>
-            <div id="recentList"></div>
+            <div class="recentList-scroll">
+                <div id="recentList"></div>
+            </div>
         </div>
 
         <div class="dropZone" id="dropZone">
@@ -1264,7 +1325,10 @@
                 </a>
                 <p class="roblox-sub">The game this tool is for. Upload a song here, play it there.</p>
 
-                <a href="https://ko-fi.com/appolodev" class="donate-btn" target="_blank" rel="noopener noreferrer">Support on Ko-fi</a>
+                <a href="https://ko-fi.com/appolodev" class="donate-btn" target="_blank" rel="noopener noreferrer">
+                    ♥ Support on Ko-fi
+                </a>
+                <p class="donate-sub">Helps keep servers running. Every bit counts.</p>
             </div>
 
             <div class="legal-section">
@@ -1303,6 +1367,7 @@
             <span class="ed-note-count" id="edNoteCount">0 notes</span>
             <button class="ed-btn" id="edZoomOut">−</button>
             <button class="ed-btn" id="edZoomIn">+</button>
+            <button class="ed-btn" id="edVertToggle" title="Toggle vertical/horizontal layout">⇅</button>
             <button class="ed-btn" id="edExport" title="Download beats as JSON backup">Export</button>
             <button class="ed-btn ed-btn-accent" id="edSave">Save</button>
             <span class="ed-save-status" id="edSaveStatus">Saved</span>
@@ -1316,6 +1381,7 @@
             <span class="ed-hint"><kbd>Scroll</kbd> navigate</span>
             <span class="ed-hint"><kbd>Ctrl+Scroll</kbd> zoom</span>
             <span class="ed-hint"><kbd>Space</kbd> play/pause</span>
+            <span class="ed-hint"><kbd>1-4</kbd> tap-place (while playing)</span>
         </div>
         <div class="ed-body">
             <div class="ed-lane-labels" id="edLaneLabels"></div>
@@ -1346,6 +1412,12 @@
                 <div class="modal-code-label">Song Code</div>
                 <div class="modal-code" id="modalCode">—</div>
                 <div class="modal-copy-notice" id="modalCopyNotice">Copied!</div>
+            </div>
+
+            <div class="modal-yt-wrap">
+                <label>YouTube Link (optional)</label>
+                <input type="text" id="modalYoutubeLink" placeholder="https://youtube.com/watch?v=..." spellcheck="false" autocomplete="off">
+                <div class="modal-yt-hint">Attach a link so others can find the song</div>
             </div>
 
             <a href="https://discord.gg/Ck5pwSzJkK" class="modal-discord" target="_blank" rel="noopener noreferrer">
@@ -1527,7 +1599,7 @@
         // RECENT SONGS
         // ==========================================
         const RECENT_KEY = "beatmapper_recent";
-        const MAX_RECENT = 3;
+        const MAX_RECENT = 15;
 
         function loadrecentsongs() {
             try {
@@ -2114,6 +2186,7 @@
         function showSaveModal(songId) {
             document.getElementById("modalCode").textContent = songId;
             document.getElementById("modalCopyNotice").classList.remove("show");
+            document.getElementById("modalYoutubeLink").value = "";
             saveModalOverlay.classList.add("active");
             launchConfetti();
         }
@@ -2174,6 +2247,7 @@
 
             dirty: false,
             animFrame: null,
+            vertical: false,
         };
 
         // ---- Autosave / crash recovery ----
@@ -2230,35 +2304,57 @@
         const edCtx = edCanvas.getContext("2d");
         const edWrap = document.getElementById("edCanvasWrap");
 
-        function edGetLaneHeight() {
-            return (edCanvas.height / window.devicePixelRatio - TIME_HEADER_H) / 4;
+        function edGetLaneSize() {
+            if (ed.vertical) {
+                const W = edCanvas.width / (window.devicePixelRatio || 1);
+                return (W - TIME_HEADER_H) / 4;
+            }
+            return (edCanvas.height / (window.devicePixelRatio || 1) - TIME_HEADER_H) / 4;
         }
 
-        function edTimeToX(t) {
+        // Time axis: X in horizontal, Y in vertical
+        function edTimeToPx(t) {
             return t * ed.pxPerSec - ed.viewOffset;
         }
 
-        function edXToTime(x) {
-            return (x + ed.viewOffset) / ed.pxPerSec;
+        function edPxToTime(px) {
+            return (px + ed.viewOffset) / ed.pxPerSec;
         }
 
-        function edYToLane(y) {
-            const laneH = edGetLaneHeight();
-            const lane = Math.floor((y - TIME_HEADER_H) / laneH) + 1;
+        // Lane axis: Y in horizontal, X in vertical
+        function edLaneToPx(lane) {
+            return TIME_HEADER_H + (lane - 1) * edGetLaneSize();
+        }
+
+        function edPxToLane(px) {
+            const lane = Math.floor((px - TIME_HEADER_H) / edGetLaneSize()) + 1;
             return Math.max(1, Math.min(4, lane));
         }
 
-        function edLaneToY(lane) {
-            return TIME_HEADER_H + (lane - 1) * edGetLaneHeight();
-        }
+        // Legacy wrappers for horizontal-only callers
+        function edGetLaneHeight() { return edGetLaneSize(); }
+        function edTimeToX(t) { return edTimeToPx(t); }
+        function edXToTime(x) { return edPxToTime(x); }
+        function edYToLane(y) { return edPxToLane(y); }
+        function edLaneToY(lane) { return edLaneToPx(lane); }
 
         function edNoteRect(note) {
-            const laneH = edGetLaneHeight();
-            const x = edTimeToX(note[0]);
-            const y = edLaneToY(note[2]) + NOTE_PAD;
+            const laneS = edGetLaneSize();
+
+            if (ed.vertical) {
+                const y = edTimeToPx(note[0]);
+                const x = edLaneToPx(note[2]) + NOTE_PAD;
+                const hold = note[3] || 0;
+                const h = hold > 0 ? Math.max(NOTE_WIDTH, hold * ed.pxPerSec) : NOTE_WIDTH;
+                const w = laneS - NOTE_PAD * 2;
+                return { x, y: y - NOTE_WIDTH / 2, w, h: h + NOTE_WIDTH / 2 };
+            }
+
+            const x = edTimeToPx(note[0]);
+            const y = edLaneToPx(note[2]) + NOTE_PAD;
             const hold = note[3] || 0;
             const w = hold > 0 ? Math.max(NOTE_WIDTH, hold * ed.pxPerSec) : NOTE_WIDTH;
-            const h = laneH - NOTE_PAD * 2;
+            const h = laneS - NOTE_PAD * 2;
             return { x: x - NOTE_WIDTH / 2, y, w: w + NOTE_WIDTH / 2, h };
         }
 
@@ -2278,6 +2374,10 @@
             if (ed.selectedIdx < 0) return false;
             const note = ed.beats[ed.selectedIdx];
             const r = edNoteRect(note);
+            if (ed.vertical) {
+                const handleY = r.y + r.h - HANDLE_W;
+                return my >= handleY && my <= r.y + r.h + HANDLE_W && mx >= r.x && mx <= r.x + r.w;
+            }
             const handleX = r.x + r.w - HANDLE_W;
             return mx >= handleX && mx <= r.x + r.w + HANDLE_W && my >= r.y && my <= r.y + r.h;
         }
@@ -2319,126 +2419,254 @@
             const dpr = window.devicePixelRatio || 1;
             const W = edCanvas.width / dpr;
             const H = edCanvas.height / dpr;
-            const laneH = edGetLaneHeight();
+            const laneS = edGetLaneSize();
             const ctx = edCtx;
 
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             ctx.clearRect(0, 0, W, H);
 
+            const timeSpan = ed.vertical ? H : W;
             const visStart = ed.viewOffset / ed.pxPerSec;
-            const visEnd = (ed.viewOffset + W) / ed.pxPerSec;
+            const visEnd = (ed.viewOffset + timeSpan) / ed.pxPerSec;
 
-            for (let i = 0; i < 4; i++) {
-                ctx.fillStyle = LANE_BG[i];
-                ctx.fillRect(0, TIME_HEADER_H + i * laneH, W, laneH);
-
-                if (i > 0) {
-                    ctx.strokeStyle = "#1a1a20";
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(0, TIME_HEADER_H + i * laneH);
-                    ctx.lineTo(W, TIME_HEADER_H + i * laneH);
-                    ctx.stroke();
+            if (ed.vertical) {
+                // -- VERTICAL MODE --
+                // Lanes as columns
+                for (let i = 0; i < 4; i++) {
+                    ctx.fillStyle = LANE_BG[i];
+                    ctx.fillRect(TIME_HEADER_H + i * laneS, 0, laneS, H);
+                    if (i > 0) {
+                        ctx.strokeStyle = "#1a1a20";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(TIME_HEADER_H + i * laneS, 0);
+                        ctx.lineTo(TIME_HEADER_H + i * laneS, H);
+                        ctx.stroke();
+                    }
                 }
-            }
 
-            if (ed.tempo > 0) {
-                const beatLen = 60 / ed.tempo;
-                const firstBeat = Math.floor(visStart / beatLen);
-
-                for (let b = firstBeat; b * beatLen <= visEnd; b++) {
-                    const t = b * beatLen;
-                    const x = edTimeToX(t);
-                    const isMeasure = b % 4 === 0;
-
-                    ctx.strokeStyle = isMeasure ? "#2a2a34" : "#161620";
-                    ctx.lineWidth = isMeasure ? 1 : 0.5;
-                    ctx.beginPath();
-                    ctx.moveTo(x, TIME_HEADER_H);
-                    ctx.lineTo(x, H);
-                    ctx.stroke();
+                // Beat grid (horizontal lines)
+                if (ed.tempo > 0) {
+                    const beatLen = 60 / ed.tempo;
+                    const firstBeat = Math.floor(visStart / beatLen);
+                    for (let b = firstBeat; b * beatLen <= visEnd; b++) {
+                        const t = b * beatLen;
+                        const y = edTimeToPx(t);
+                        const isMeasure = b % 4 === 0;
+                        ctx.strokeStyle = isMeasure ? "#2a2a34" : "#161620";
+                        ctx.lineWidth = isMeasure ? 1 : 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(TIME_HEADER_H, y);
+                        ctx.lineTo(W, y);
+                        ctx.stroke();
+                    }
                 }
-            }
 
-            ctx.fillStyle = "#0e0e12";
-            ctx.fillRect(0, 0, W, TIME_HEADER_H);
-            ctx.strokeStyle = "#1c1c22";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, TIME_HEADER_H);
-            ctx.lineTo(W, TIME_HEADER_H);
-            ctx.stroke();
-
-            const stepSec = edTimeStep();
-            const firstLabel = Math.floor(visStart / stepSec) * stepSec;
-            ctx.fillStyle = "#555560";
-            ctx.font = "10px 'JetBrains Mono', monospace";
-            ctx.textAlign = "center";
-
-            for (let t = firstLabel; t <= visEnd; t += stepSec) {
-                const x = edTimeToX(t);
-                ctx.fillText(formatTime(t), x, 16);
-
+                // Time sidebar (left strip)
+                ctx.fillStyle = "#0e0e12";
+                ctx.fillRect(0, 0, TIME_HEADER_H, H);
                 ctx.strokeStyle = "#1c1c22";
-                ctx.lineWidth = 0.5;
+                ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.moveTo(x, 20);
-                ctx.lineTo(x, TIME_HEADER_H);
+                ctx.moveTo(TIME_HEADER_H, 0);
+                ctx.lineTo(TIME_HEADER_H, H);
                 ctx.stroke();
-            }
 
-            for (let i = 0; i < ed.beats.length; i++) {
-                const note = ed.beats[i];
-                if (note[0] < visStart - 2 || note[0] > visEnd + 2) continue;
-
-                const r = edNoteRect(note);
-                const lane = note[2];
-                const isSelected = i === ed.selectedIdx;
-                const color = LANE_COLORS[lane - 1] || LANE_COLORS[0];
-
-                if (note[3] > 0) {
-                    ctx.fillStyle = isSelected ? color : hexAlpha(color, 0.35);
-                    edRoundRect(ctx, r.x + NOTE_WIDTH / 2, r.y + 2, r.w - NOTE_WIDTH / 2, r.h - 4, 3);
-                    ctx.fill();
+                // Time labels
+                const stepSec = edTimeStep();
+                const firstLabel = Math.floor(visStart / stepSec) * stepSec;
+                ctx.fillStyle = "#555560";
+                ctx.font = "9px 'JetBrains Mono', monospace";
+                ctx.textAlign = "center";
+                for (let t = firstLabel; t <= visEnd; t += stepSec) {
+                    const y = edTimeToPx(t);
+                    ctx.save();
+                    ctx.translate(12, y);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText(formatTime(t), 0, 0);
+                    ctx.restore();
                 }
 
-                ctx.fillStyle = isSelected ? "#ffffff" : color;
-                edRoundRect(ctx, r.x, r.y, NOTE_WIDTH, r.h, 4);
-                ctx.fill();
+                // Notes
+                for (let i = 0; i < ed.beats.length; i++) {
+                    const note = ed.beats[i];
+                    if (note[0] < visStart - 2 || note[0] > visEnd + 2) continue;
 
-                if (isSelected) {
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = 2;
-                    edRoundRect(ctx, r.x - 1, r.y - 1, NOTE_WIDTH + 2, r.h + 2, 5);
-                    ctx.stroke();
+                    const r = edNoteRect(note);
+                    const lane = note[2];
+                    const isSelected = i === ed.selectedIdx;
+                    const color = LANE_COLORS[lane - 1] || LANE_COLORS[0];
 
-                    const handleX = r.x + r.w;
-                    ctx.fillStyle = "#ffffff";
-                    edRoundRect(ctx, handleX - 3, r.y + r.h * 0.2, 6, r.h * 0.6, 2);
+                    // Hold tail (vertical = extends downward)
+                    if (note[3] > 0) {
+                        ctx.fillStyle = isSelected ? color : hexAlpha(color, 0.35);
+                        edRoundRect(ctx, r.x + 2, r.y + NOTE_WIDTH / 2, r.w - 4, r.h - NOTE_WIDTH / 2, 3);
+                        ctx.fill();
+                    }
+
+                    // Note head
+                    ctx.fillStyle = isSelected ? "#ffffff" : color;
+                    edRoundRect(ctx, r.x, r.y, r.w, NOTE_WIDTH, 4);
                     ctx.fill();
-                    ctx.fillStyle = hexAlpha(color, 0.6);
-                    edRoundRect(ctx, handleX - 2, r.y + r.h * 0.3, 4, r.h * 0.4, 1);
-                    ctx.fill();
+
+                    if (isSelected) {
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 2;
+                        edRoundRect(ctx, r.x - 1, r.y - 1, r.w + 2, NOTE_WIDTH + 2, 5);
+                        ctx.stroke();
+
+                        // Hold resize handle (bottom edge)
+                        const handleY = r.y + r.h;
+                        ctx.fillStyle = "#ffffff";
+                        edRoundRect(ctx, r.x + r.w * 0.2, handleY - 3, r.w * 0.6, 6, 2);
+                        ctx.fill();
+                        ctx.fillStyle = hexAlpha(color, 0.6);
+                        edRoundRect(ctx, r.x + r.w * 0.3, handleY - 2, r.w * 0.4, 4, 1);
+                        ctx.fill();
+                    }
                 }
-            }
 
-            if (audioElement.src) {
-                const px = edTimeToX(audioElement.currentTime);
-                if (px >= 0 && px <= W) {
-                    ctx.strokeStyle = "#ffffff";
-                    ctx.lineWidth = 1.5;
+                // Playhead (horizontal line)
+                if (audioElement.src) {
+                    const py = edTimeToPx(audioElement.currentTime);
+                    if (py >= 0 && py <= H) {
+                        ctx.strokeStyle = "#ffffff";
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(0, py);
+                        ctx.lineTo(W, py);
+                        ctx.stroke();
+
+                        ctx.fillStyle = "#ffffff";
+                        ctx.beginPath();
+                        ctx.moveTo(0, py - 4);
+                        ctx.lineTo(0, py + 4);
+                        ctx.lineTo(6, py);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+
+                // Lane column labels (drawn last so they overlay)
+                for (let i = 0; i < 4; i++) {
+                    const cx = TIME_HEADER_H + i * laneS + laneS / 2;
+                    ctx.fillStyle = hexAlpha(LANE_COLORS[i], 0.15);
+                    ctx.fillRect(TIME_HEADER_H + i * laneS, 0, laneS, 20);
+                    ctx.fillStyle = LANE_COLORS[i];
+                    ctx.font = "bold 11px 'JetBrains Mono', monospace";
+                    ctx.textAlign = "center";
+                    ctx.fillText(String(i + 1), cx, 14);
+                }
+
+            } else {
+                // -- HORIZONTAL MODE (original) --
+                for (let i = 0; i < 4; i++) {
+                    ctx.fillStyle = LANE_BG[i];
+                    ctx.fillRect(0, TIME_HEADER_H + i * laneS, W, laneS);
+                    if (i > 0) {
+                        ctx.strokeStyle = "#1a1a20";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(0, TIME_HEADER_H + i * laneS);
+                        ctx.lineTo(W, TIME_HEADER_H + i * laneS);
+                        ctx.stroke();
+                    }
+                }
+
+                if (ed.tempo > 0) {
+                    const beatLen = 60 / ed.tempo;
+                    const firstBeat = Math.floor(visStart / beatLen);
+                    for (let b = firstBeat; b * beatLen <= visEnd; b++) {
+                        const t = b * beatLen;
+                        const x = edTimeToPx(t);
+                        const isMeasure = b % 4 === 0;
+                        ctx.strokeStyle = isMeasure ? "#2a2a34" : "#161620";
+                        ctx.lineWidth = isMeasure ? 1 : 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(x, TIME_HEADER_H);
+                        ctx.lineTo(x, H);
+                        ctx.stroke();
+                    }
+                }
+
+                ctx.fillStyle = "#0e0e12";
+                ctx.fillRect(0, 0, W, TIME_HEADER_H);
+                ctx.strokeStyle = "#1c1c22";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, TIME_HEADER_H);
+                ctx.lineTo(W, TIME_HEADER_H);
+                ctx.stroke();
+
+                const stepSec = edTimeStep();
+                const firstLabel = Math.floor(visStart / stepSec) * stepSec;
+                ctx.fillStyle = "#555560";
+                ctx.font = "10px 'JetBrains Mono', monospace";
+                ctx.textAlign = "center";
+                for (let t = firstLabel; t <= visEnd; t += stepSec) {
+                    const x = edTimeToPx(t);
+                    ctx.fillText(formatTime(t), x, 16);
+                    ctx.strokeStyle = "#1c1c22";
+                    ctx.lineWidth = 0.5;
                     ctx.beginPath();
-                    ctx.moveTo(px, 0);
-                    ctx.lineTo(px, H);
+                    ctx.moveTo(x, 20);
+                    ctx.lineTo(x, TIME_HEADER_H);
                     ctx.stroke();
+                }
 
-                    ctx.fillStyle = "#ffffff";
-                    ctx.beginPath();
-                    ctx.moveTo(px - 4, 0);
-                    ctx.lineTo(px + 4, 0);
-                    ctx.lineTo(px, 6);
-                    ctx.closePath();
+                for (let i = 0; i < ed.beats.length; i++) {
+                    const note = ed.beats[i];
+                    if (note[0] < visStart - 2 || note[0] > visEnd + 2) continue;
+
+                    const r = edNoteRect(note);
+                    const lane = note[2];
+                    const isSelected = i === ed.selectedIdx;
+                    const color = LANE_COLORS[lane - 1] || LANE_COLORS[0];
+
+                    if (note[3] > 0) {
+                        ctx.fillStyle = isSelected ? color : hexAlpha(color, 0.35);
+                        edRoundRect(ctx, r.x + NOTE_WIDTH / 2, r.y + 2, r.w - NOTE_WIDTH / 2, r.h - 4, 3);
+                        ctx.fill();
+                    }
+
+                    ctx.fillStyle = isSelected ? "#ffffff" : color;
+                    edRoundRect(ctx, r.x, r.y, NOTE_WIDTH, r.h, 4);
                     ctx.fill();
+
+                    if (isSelected) {
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 2;
+                        edRoundRect(ctx, r.x - 1, r.y - 1, NOTE_WIDTH + 2, r.h + 2, 5);
+                        ctx.stroke();
+
+                        const handleX = r.x + r.w;
+                        ctx.fillStyle = "#ffffff";
+                        edRoundRect(ctx, handleX - 3, r.y + r.h * 0.2, 6, r.h * 0.6, 2);
+                        ctx.fill();
+                        ctx.fillStyle = hexAlpha(color, 0.6);
+                        edRoundRect(ctx, handleX - 2, r.y + r.h * 0.3, 4, r.h * 0.4, 1);
+                        ctx.fill();
+                    }
+                }
+
+                if (audioElement.src) {
+                    const px = edTimeToPx(audioElement.currentTime);
+                    if (px >= 0 && px <= W) {
+                        ctx.strokeStyle = "#ffffff";
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(px, 0);
+                        ctx.lineTo(px, H);
+                        ctx.stroke();
+
+                        ctx.fillStyle = "#ffffff";
+                        ctx.beginPath();
+                        ctx.moveTo(px - 4, 0);
+                        ctx.lineTo(px + 4, 0);
+                        ctx.lineTo(px, 6);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
                 }
             }
 
@@ -2480,11 +2708,14 @@
 
         function edFollowPlayhead() {
             if (!audioElement.paused && ed.active) {
-                const W = edCanvas.width / (window.devicePixelRatio || 1);
+                const dpr = window.devicePixelRatio || 1;
+                const span = ed.vertical
+                    ? (edCanvas.height / dpr)
+                    : (edCanvas.width / dpr);
                 const px = audioElement.currentTime * ed.pxPerSec;
-                const margin = W * 0.3;
+                const margin = span * 0.3;
 
-                if (px - ed.viewOffset > W - margin || px < ed.viewOffset) {
+                if (px - ed.viewOffset > span - margin || px < ed.viewOffset) {
                     ed.viewOffset = Math.max(0, px - margin);
                 }
             }
@@ -2556,6 +2787,7 @@
 
                 const labelsEl = document.getElementById("edLaneLabels");
                 labelsEl.innerHTML = "";
+                labelsEl.style.display = ed.vertical ? "none" : "";
                 const headerSpacer = document.createElement("div");
                 headerSpacer.style.height = TIME_HEADER_H + "px";
                 headerSpacer.style.flexShrink = "0";
@@ -2610,8 +2842,10 @@
             const mx = e.clientX - rect.left;
             const my = e.clientY - rect.top;
 
-            if (my < TIME_HEADER_H) {
-                const t = edXToTime(mx);
+            // Time header / sidebar click to seek
+            const inHeader = ed.vertical ? (mx < TIME_HEADER_H) : (my < TIME_HEADER_H);
+            if (inHeader) {
+                const t = edPxToTime(ed.vertical ? my : mx);
                 audioElement.currentTime = Math.max(0, Math.min(t, ed.duration));
                 return;
             }
@@ -2630,13 +2864,15 @@
             if (edHitHoldHandle(mx, my)) {
                 ed.resizingHold = true;
                 ed.dragging = false;
-                edWrap.style.cursor = "ew-resize";
+                edWrap.style.cursor = ed.vertical ? "ns-resize" : "ew-resize";
                 return;
             }
 
             if (isDoubleClick && hitIdx === -1) {
-                const time = edSnapTime(edXToTime(mx));
-                const lane = edYToLane(my);
+                const timePx = ed.vertical ? my : mx;
+                const lanePx = ed.vertical ? mx : my;
+                const time = edSnapTime(edPxToTime(timePx));
+                const lane = edPxToLane(lanePx);
                 edAddNote(time, lane);
                 return;
             }
@@ -2645,7 +2881,8 @@
                 ed.selectedIdx = hitIdx;
                 ed.dragging = true;
                 ed.didDrag = false;
-                ed.dragOffsetX = mx - edTimeToX(ed.beats[hitIdx][0]);
+                const timePx = ed.vertical ? my : mx;
+                ed.dragOffsetX = timePx - edTimeToPx(ed.beats[hitIdx][0]);
                 ed.dragOrigTime = ed.beats[hitIdx][0];
                 ed.dragOrigLane = ed.beats[hitIdx][2];
                 edWrap.style.cursor = "grabbing";
@@ -2661,7 +2898,7 @@
 
             if (ed.resizingHold && ed.selectedIdx >= 0) {
                 const note = ed.beats[ed.selectedIdx];
-                const endTime = edSnapTime(edXToTime(mx));
+                const endTime = edSnapTime(edPxToTime(ed.vertical ? my : mx));
                 const holdDuration = Math.max(0, endTime - note[0]);
                 note[3] = Math.round(holdDuration * 1000) / 1000;
                 ed.dirty = true;
@@ -2670,8 +2907,10 @@
 
             if (ed.dragging && ed.selectedIdx >= 0) {
                 const note = ed.beats[ed.selectedIdx];
-                const newTime = edSnapTime(edXToTime(mx - ed.dragOffsetX));
-                const newLane = edYToLane(my);
+                const timePx = ed.vertical ? my : mx;
+                const lanePx = ed.vertical ? mx : my;
+                const newTime = edSnapTime(edPxToTime(timePx - ed.dragOffsetX));
+                const newLane = edPxToLane(lanePx);
 
                 if (Math.abs(newTime - ed.dragOrigTime) > 0.01 || newLane !== ed.dragOrigLane) {
                     ed.didDrag = true;
@@ -2683,7 +2922,7 @@
             }
 
             if (edHitHoldHandle(mx, my)) {
-                edWrap.style.cursor = "ew-resize";
+                edWrap.style.cursor = ed.vertical ? "ns-resize" : "ew-resize";
             } else if (edHitTest(mx, my) >= 0) {
                 edWrap.style.cursor = "grab";
             } else {
@@ -2719,13 +2958,15 @@
 
             if (e.ctrlKey || e.metaKey) {
                 const rect = edCanvas.getBoundingClientRect();
-                const mx = e.clientX - rect.left;
-                const timeAtCursor = edXToTime(mx);
+                const cursorPx = ed.vertical
+                    ? (e.clientY - rect.top)
+                    : (e.clientX - rect.left);
+                const timeAtCursor = edPxToTime(cursorPx);
 
                 const zoomFactor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
                 ed.pxPerSec = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, ed.pxPerSec * zoomFactor));
 
-                ed.viewOffset = timeAtCursor * ed.pxPerSec - mx;
+                ed.viewOffset = timeAtCursor * ed.pxPerSec - cursorPx;
             } else {
                 ed.viewOffset += e.deltaY * 1.5;
             }
@@ -2748,6 +2989,15 @@
             if (e.code === "Delete" || e.code === "Backspace") {
                 e.preventDefault();
                 edDeleteSelected();
+                return;
+            }
+
+            // Tap-to-place: press 1-4 while playing to drop a note in that lane
+            if (!audioElement.paused && ["Digit1","Digit2","Digit3","Digit4"].includes(e.code)) {
+                e.preventDefault();
+                const lane = parseInt(e.code.replace("Digit", ""));
+                const time = edSnapTime(audioElement.currentTime);
+                edAddNote(time, lane);
                 return;
             }
         });
@@ -2823,7 +3073,8 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         beats: ed.beats,
-                        retention: retention
+                        retention: retention,
+                        youtube_url: document.getElementById("modalYoutubeLink").value.trim() || null
                     })
                 });
 
@@ -2862,6 +3113,19 @@
         });
 
         document.getElementById("edSave").addEventListener("click", edSave);
+
+        document.getElementById("edVertToggle").addEventListener("click", () => {
+            ed.vertical = !ed.vertical;
+            ed.viewOffset = 0;
+            const labelsEl = document.getElementById("edLaneLabels");
+            if (ed.vertical) {
+                // In vertical mode: lanes are columns on canvas, hide sidebar labels
+                labelsEl.style.display = "none";
+            } else {
+                labelsEl.style.display = "";
+            }
+            edResizeCanvas();
+        });
 
         document.addEventListener("keydown", (e) => {
             if (ed.active && (e.ctrlKey || e.metaKey) && e.key === "s") {
