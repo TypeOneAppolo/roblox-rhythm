@@ -221,6 +221,76 @@
         }
         .btn-secondary:hover { border-color: var(--border-hover); opacity: 1; color: var(--text-bright); }
 
+        /* ---- CODE INPUT ---- */
+        .or-divider {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            margin: 12px 0;
+            position: relative;
+        }
+        .or-divider::before, .or-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: calc(50% - 90px);
+            height: 1px;
+            background: var(--border);
+        }
+        .or-divider::before { left: 0; }
+        .or-divider::after { right: 0; }
+
+        .code-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .code-field {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: lowercase;
+            transition: border-color 0.15s;
+        }
+        .code-field:focus { outline: none; border-color: var(--border-hover); }
+        .code-field::placeholder {
+            color: var(--text-dim);
+            font-weight: 400;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+        .code-load-btn {
+            width: auto;
+            padding: 10px 20px;
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+        .code-status {
+            font-size: 0.72rem;
+            margin-bottom: 10px;
+            min-height: 1em;
+        }
+        .code-status.error { color: var(--red); }
+        .code-status.ok { color: var(--green); }
+
+        .audio-needed {
+            text-align: center;
+            padding: 14px;
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+        }
+
         /* ---- PROGRESS ---- */
         .progressWrap { display: none; margin-bottom: 14px; }
         .progressWrap.show { display: block; }
@@ -1087,10 +1157,18 @@
 
         <div class="dropZone" id="dropZone">
             <span class="drop-icon">+</span>
-            <p>Drop an audio file here, or click to pick one</p>
+            <p id="dropText">Drop an audio file here, or click to pick one</p>
             <p class="filename" id="fileName"></p>
         </div>
         <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a">
+
+        <div class="or-divider"><span>or play someone else's beatmap</span></div>
+
+        <div class="code-input-row">
+            <input type="text" id="codeInput" class="code-field" placeholder="Paste song code" maxlength="20" spellcheck="false" autocomplete="off">
+            <button class="btn code-load-btn" id="codeLoadBtn">Load</button>
+        </div>
+        <div class="code-status" id="codeStatus"></div>
 
         <div class="filterWarning" id="filterWarning"></div>
 
@@ -1304,6 +1382,7 @@
         let audioUrl = null;
         let isPlaying = false;
         let currentSongId = null;
+        let loadedFromCode = null; // song ID if loaded via code input
 
         let syncPollInterval = null;
         let syncTriggered = false;
@@ -1665,15 +1744,40 @@
 
             selectedFile = file;
             document.getElementById("fileName").textContent = file.name;
-            analyzeBtn.disabled = false;
-            results.classList.remove("show");
-
-            fullreset();
 
             if (audioUrl) URL.revokeObjectURL(audioUrl);
             audioUrl = URL.createObjectURL(file);
             audioElement.src = audioUrl;
             preloadAudio();
+
+            if (loadedFromCode) {
+                // Code mode — skip analysis, just set up audio
+                document.getElementById("trackName").textContent = file.name;
+
+                // Remove the "drop audio" banner
+                const banner = document.getElementById("audioNeeded");
+                if (banner) banner.remove();
+
+                // Cache audio + add to recent
+                storeAudio(loadedFromCode, file);
+                const tempo = document.getElementById("tempoValue").textContent;
+                const beats = document.getElementById("beatsValue").textContent;
+                const dur = document.getElementById("durationValue").textContent;
+                addrecentsong(loadedFromCode, file.name, tempo, beats, dur);
+
+                startsyncpolling(loadedFromCode);
+            } else {
+                // Normal mode — enable analyze
+                analyzeBtn.disabled = false;
+                results.classList.remove("show");
+                fullreset();
+
+                // Re-set audio since fullreset clears it
+                if (audioUrl) URL.revokeObjectURL(audioUrl);
+                audioUrl = URL.createObjectURL(file);
+                audioElement.src = audioUrl;
+                preloadAudio();
+            }
         }
 
 
@@ -1687,6 +1791,17 @@
             isPlaying = false;
             syncTriggered = false;
             audioPreloaded = false;
+            loadedFromCode = null;
+
+            document.getElementById("dropText").textContent = "Drop an audio file here, or click to pick one";
+            document.getElementById("analyzeBtn").style.display = "";
+            document.getElementById("codeInput").value = "";
+            document.getElementById("codeStatus").textContent = "";
+            document.getElementById("codeStatus").className = "code-status";
+
+            // Remove audio-needed banner if present
+            const banner = document.getElementById("audioNeeded");
+            if (banner) banner.remove();
 
             stopsyncpolling();
 
@@ -1694,6 +1809,72 @@
             syncEl.textContent = "Waiting for Roblox...";
             syncEl.classList.remove("active", "stopped");
         }
+
+
+        // ==========================================
+        // LOAD FROM CODE
+        // ==========================================
+
+        document.getElementById("codeLoadBtn").addEventListener("click", async () => {
+            const code = document.getElementById("codeInput").value.trim().toLowerCase();
+            const statusEl = document.getElementById("codeStatus");
+
+            if (!code) return;
+
+            statusEl.textContent = "Loading...";
+            statusEl.className = "code-status";
+
+            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+
+            try {
+                const res = await fetch(`${serverUrl}/beats/${code}?_=${Date.now()}`);
+                if (!res.ok) throw new Error("Song not found or expired");
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                // Set code mode
+                loadedFromCode = code;
+
+                // Populate results
+                document.getElementById("tempoValue").textContent = data.tempo;
+                document.getElementById("beatsValue").textContent = data.totalBeats;
+                document.getElementById("durationValue").textContent = formatTime(data.duration);
+                document.getElementById("songIdDisplay").textContent = code;
+                document.getElementById("lbLink").href = "/leaderboard/?id=" + code;
+                document.getElementById("trackName").textContent = data.filename || code;
+
+                // Hide analyze button, update dropzone
+                document.getElementById("analyzeBtn").style.display = "none";
+                document.getElementById("dropText").textContent = "Drop your copy of the audio file here for playback";
+
+                // Add audio-needed banner inside results if no audio yet
+                const existing = document.getElementById("audioNeeded");
+                if (existing) existing.remove();
+
+                const banner = document.createElement("div");
+                banner.id = "audioNeeded";
+                banner.className = "audio-needed";
+                banner.textContent = "Drop your audio file above to enable playback & sync";
+
+                // Insert before the player section
+                const player = results.querySelector(".player");
+                if (player) results.insertBefore(banner, player);
+
+                results.classList.add("show");
+                statusEl.textContent = "Loaded — drop audio above to play";
+                statusEl.className = "code-status ok";
+
+            } catch (e) {
+                statusEl.textContent = e.message;
+                statusEl.className = "code-status error";
+                loadedFromCode = null;
+            }
+        });
+
+        // Allow Enter key in code input
+        document.getElementById("codeInput").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") document.getElementById("codeLoadBtn").click();
+        });
 
 
         // ==========================================
