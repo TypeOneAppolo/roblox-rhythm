@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Profile — Rhythmia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0c;
+            --surface: #111114;
+            --border: #1c1c22;
+            --border-hover: #2a2a34;
+            --text: #a0a0ae;
+            --text-dim: #55555f;
+            --text-bright: #e4e4ec;
+            --accent: #e85d3a;
+            --green: #3fca6e;
+            --red: #e55555;
+            --radius: 8px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 520px;
+            width: 92%;
+            padding: 48px 0 40px;
+        }
+
+        /* ---- HEADER ---- */
+        .header { margin-bottom: 28px; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            color: #fff;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            text-decoration: none;
+        }
+
+        .logo a { text-decoration: none; color: var(--text-bright); }
+
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.03em;
+        }
+
+        .back-link {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            text-decoration: none;
+            margin-left: 38px;
+            transition: color 0.15s;
+        }
+        .back-link:hover { color: var(--text); }
+        .nav-sep { color: var(--border); font-size: 0.68rem; margin: 0 4px; }
+
+        /* ---- PROFILE CARD ---- */
+        .profile-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 18px;
+            margin-bottom: 16px;
+        }
+        .profile-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .profile-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+        .profile-rank {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--accent);
+            background: rgba(232, 93, 58, 0.08);
+            padding: 4px 10px;
+            border-radius: 5px;
+        }
+
+        /* ---- STATS GRID ---- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .stat-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 10px;
+            text-align: center;
+        }
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.58rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .stat-value {
+            color: var(--text-bright);
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-top: 3px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .stat-value.green { color: var(--green); }
+        .stat-value.accent { color: var(--accent); }
+
+        /* ---- NOTE BREAKDOWN BAR ---- */
+        .breakdown-section {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+        }
+        .breakdown-label {
+            color: var(--text-dim);
+            font-size: 0.62rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+        .breakdown-bar {
+            display: flex;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            background: var(--border);
+            margin-bottom: 8px;
+        }
+        .breakdown-bar .seg-perfect { background: var(--green); }
+        .breakdown-bar .seg-good { background: var(--accent); }
+        .breakdown-bar .seg-miss { background: var(--red); }
+
+        .breakdown-legend {
+            display: flex;
+            gap: 14px;
+            font-size: 0.68rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-dim);
+        }
+        .legend-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .legend-item span {
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+        }
+
+        /* ---- TOP PLAYS ---- */
+        .section-label {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 10px;
+        }
+
+        .play-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 11px 13px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .play-item:hover { border-color: var(--border-hover); }
+
+        .play-left {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .play-song {
+            color: var(--text-bright);
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .play-meta {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            margin-top: 2px;
+        }
+        .play-meta .fc-tag {
+            color: var(--green);
+            font-weight: 700;
+            font-size: 0.62rem;
+            background: rgba(63, 202, 110, 0.1);
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 4px;
+        }
+
+        .play-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        /* ---- STATES ---- */
+        .loading {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+        .error-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--red);
+            font-size: 0.85rem;
+        }
+        .empty-hint {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            text-align: center;
+            padding: 24px 0;
+        }
+
+        /* ---- FOOTER ---- */
+        .footer {
+            margin-top: 28px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .copyright-line {
+            color: var(--text-dim);
+            font-size: 0.62rem;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.25s ease both; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <a href="/" class="logo-icon">R</a>
+                <a href="/"><h1>Rhythmia</h1></a>
+            </div>
+            <a href="/" class="back-link">&larr; Beat Mapper</a>
+            <span class="nav-sep">/</span>
+            <a href="/rankings/" class="back-link">Rankings</a>
+        </div>
+
+        <div id="content">
+            <div class="loading">Loading profile...</div>
+        </div>
+
+        <div class="footer">
+            <div class="copyright-line">Rhythmia &mdash; any song, any time</div>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('id');
+        const API = 'https://appolopl-roblox-rhythm-api.hf.space';
+        const content = document.getElementById('content');
+
+        if (!userId) {
+            content.innerHTML = '<div class="error-state">No player ID provided<br><span style="font-size:0.72rem;color:var(--text-dim)">Use ?id=user_id</span></div>';
+        } else {
+            load();
+        }
+
+        async function load() {
+            try {
+                const res = await fetch(`${API}/profile/${userId}`);
+                if (!res.ok) throw new Error('Player not found');
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                render(data);
+            } catch (e) {
+                content.innerHTML = `<div class="error-state">Could not load profile<br><span style="font-size:0.72rem;color:var(--text-dim)">${e.message}</span></div>`;
+            }
+        }
+
+        function fmtNum(n) { return n.toLocaleString(); }
+
+        function render(data) {
+            const s = data.stats;
+            const nb = s.note_breakdown;
+            const total = nb.perfects + nb.goods + nb.misses;
+            const pPct = total > 0 ? (nb.perfects / total * 100) : 0;
+            const gPct = total > 0 ? (nb.goods / total * 100) : 0;
+            const mPct = total > 0 ? (nb.misses / total * 100) : 0;
+
+            let html = '<div class="fade-in">';
+
+            // Profile card
+            html += `<div class="profile-card">
+                <div class="profile-top">
+                    <div class="profile-name">${esc(data.username)}</div>
+                    <div class="profile-rank">#${data.global_rank}</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Total Score</div>
+                        <div class="stat-value">${compactNum(s.total_score)}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Avg Accuracy</div>
+                        <div class="stat-value green">${s.avg_accuracy.toFixed(1)}%</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Songs Played</div>
+                        <div class="stat-value">${s.songs_played}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Best Combo</div>
+                        <div class="stat-value">${fmtNum(s.best_combo)}x</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Full Combos</div>
+                        <div class="stat-value accent">${s.total_fcs}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Notes Hit</div>
+                        <div class="stat-value">${compactNum(s.total_notes_hit)}</div>
+                    </div>
+                </div>
+
+                <div class="breakdown-section">
+                    <div class="breakdown-label">Note Breakdown</div>
+                    <div class="breakdown-bar">
+                        <div class="seg-perfect" style="width:${pPct}%"></div>
+                        <div class="seg-good" style="width:${gPct}%"></div>
+                        <div class="seg-miss" style="width:${mPct}%"></div>
+                    </div>
+                    <div class="breakdown-legend">
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Perfect <span>${fmtNum(nb.perfects)}</span></div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Good <span>${fmtNum(nb.goods)}</span></div>
+                        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Miss <span>${fmtNum(nb.misses)}</span></div>
+                    </div>
+                </div>
+            </div>`;
+
+            // Top plays
+            if (data.top_plays && data.top_plays.length > 0) {
+                html += `<div class="section-label">Best plays</div>`;
+                for (const p of data.top_plays) {
+                    html += `<div class="play-item" onclick="window.location='/leaderboard/?id=${esc(p.song_id)}'">
+                        <div class="play-left">
+                            <div class="play-song">${esc(p.song_name)}</div>
+                            <div class="play-meta">
+                                ${p.accuracy.toFixed(1)}% &middot; ${p.max_combo}x combo
+                                ${p.fc ? '<span class="fc-tag">FC</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="play-score">${fmtNum(p.score)}</div>
+                    </div>`;
+                }
+            } else {
+                html += '<div class="empty-hint">No plays yet</div>';
+            }
+
+            html += '</div>';
+            content.innerHTML = html;
+            document.title = `${data.username} — Rhythmia`;
+        }
+
+        function compactNum(n) {
+            if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+            if (n >= 10_000) return (n / 1_000).toFixed(1) + 'K';
+            return n.toLocaleString();
+        }
+
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s || '';
+            return d.innerHTML;
+        }
+    </script>
+</body>
+</html>
