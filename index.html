@@ -960,6 +960,15 @@
             pointer-events: none;
         }
 
+        /* ---- BG WAVES ---- */
+        #bgCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .container { position: relative; z-index: 1; }
+
         /* ---- FEEDBACK BUTTON ---- */
         .feedback-fab {
             position: fixed;
@@ -1009,6 +1018,7 @@
     </style>
 </head>
 <body>
+    <canvas id="bgCanvas"></canvas>
     <div class="container">
         <div class="header">
             <div class="logo">
@@ -2625,6 +2635,94 @@
             if (ed.active) edResizeCanvas();
         });
     </script>
+
+    <script>
+    // ---- Background audio-reactive waves ----
+    (() => {
+        const canvas = document.getElementById("bgCanvas");
+        const ctx = canvas.getContext("2d");
+        const audio = document.getElementById("audioElement");
+
+        let W, H;
+        let analyser = null;
+        let dataArray = null;
+        let audioCtx = null;
+        let connected = false;
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener("resize", resize);
+
+        // Connect analyser on first interaction (browser policy)
+        function hookAudio() {
+            if (connected) return;
+            connected = true;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            analyser.smoothingTimeConstant = 0.8;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            const source = audioCtx.createMediaElementSource(audio);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+        }
+
+        document.addEventListener("click", hookAudio, { once: true });
+
+        const WAVE_COUNT = 4;
+        const accentR = 232, accentG = 93, accentB = 58;
+
+        function getEnergy() {
+            if (!analyser || audio.paused) return 0;
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            return sum / (dataArray.length * 255);
+        }
+
+        let t = 0;
+        function draw() {
+            requestAnimationFrame(draw);
+            t += 0.004;
+            ctx.clearRect(0, 0, W, H);
+
+            const energy = getEnergy();
+            // idle drift always present, energy boosts amplitude
+            const baseAmp = H * 0.015;
+            const reactAmp = energy * H * 0.12;
+            const amp = baseAmp + reactAmp;
+
+            for (let w = 0; w < WAVE_COUNT; w++) {
+                const progress = w / WAVE_COUNT;
+                const yCenter = H * (0.3 + progress * 0.4);
+                const freq = 1.5 + w * 0.7;
+                const phase = t * (0.8 + w * 0.3) + w * 1.2;
+                const alpha = 0.04 + energy * 0.12 - progress * 0.01;
+
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(${accentR}, ${accentG}, ${accentB}, ${Math.max(0.02, alpha)})`;
+                ctx.lineWidth = 1.2 + energy * 2;
+
+                for (let x = 0; x <= W; x += 4) {
+                    const xNorm = x / W;
+                    // Taper edges to zero so waves fade at screen borders
+                    const envelope = Math.sin(xNorm * Math.PI);
+                    const y = yCenter + Math.sin(xNorm * freq * Math.PI + phase) * amp * envelope
+                        + Math.sin(xNorm * freq * 2.3 * Math.PI + phase * 1.7) * amp * 0.3 * envelope;
+
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+        }
+        draw();
+    })();
+    </script>
+
     <a class="feedback-fab" href="https://forms.gle/wav1Z94rSb48QWiG6" target="_blank" rel="noopener">
         <span class="fab-dot"></span> Feedback
     </a>
