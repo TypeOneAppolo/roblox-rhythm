@@ -1287,6 +1287,53 @@
 
 
         // ==========================================
+        // AUDIO CACHE (IndexedDB)
+        // ==========================================
+
+        const AUDIO_DB_NAME = "rhythmia_audio";
+        const AUDIO_STORE = "blobs";
+
+        function openAudioDb() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(AUDIO_DB_NAME, 1);
+                req.onupgradeneeded = () => req.result.createObjectStore(AUDIO_STORE);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function storeAudio(songId, blob) {
+            try {
+                const db = await openAudioDb();
+                const tx = db.transaction(AUDIO_STORE, "readwrite");
+                tx.objectStore(AUDIO_STORE).put(blob, songId);
+                await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+                db.close();
+            } catch (e) { console.warn("[audiocache] store failed:", e); }
+        }
+
+        async function loadAudio(songId) {
+            try {
+                const db = await openAudioDb();
+                const tx = db.transaction(AUDIO_STORE, "readonly");
+                const req = tx.objectStore(AUDIO_STORE).get(songId);
+                const blob = await new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+                db.close();
+                return blob || null;
+            } catch { return null; }
+        }
+
+        async function deleteAudio(songId) {
+            try {
+                const db = await openAudioDb();
+                const tx = db.transaction(AUDIO_STORE, "readwrite");
+                tx.objectStore(AUDIO_STORE).delete(songId);
+                db.close();
+            } catch {}
+        }
+
+
+        // ==========================================
         // RECENT SONGS
         // ==========================================
         const RECENT_KEY = "beatmapper_recent";
@@ -1307,7 +1354,11 @@
             let recent = loadrecentsongs();
             recent = recent.filter(r => r.id !== songId);
             recent.unshift({ id: songId, name: filename, tempo, beats: totalBeats, dur: duration, ts: Date.now() });
-            if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
+            // Clean up audio for songs that fall off the list
+            if (recent.length > MAX_RECENT) {
+                for (const dropped of recent.slice(MAX_RECENT)) deleteAudio(dropped.id);
+                recent = recent.slice(0, MAX_RECENT);
+            }
             saverecentsongs(recent);
             renderrecentsongs();
         }
@@ -1316,6 +1367,7 @@
             let recent = loadrecentsongs();
             recent = recent.filter(r => r.id !== songId);
             saverecentsongs(recent);
+            deleteAudio(songId);
             renderrecentsongs();
         }
 
@@ -1364,7 +1416,7 @@
                 item.appendChild(codeEl);
                 item.appendChild(removeEl);
 
-                item.addEventListener("click", () => {
+                item.addEventListener("click", async () => {
                     document.getElementById("songIdDisplay").textContent = song.id;
                     document.getElementById("tempoValue").textContent = song.tempo;
                     document.getElementById("beatsValue").textContent = song.beats;
@@ -1372,6 +1424,16 @@
                     document.getElementById("trackName").textContent = song.name || song.id;
                     results.classList.add("show");
 
+                    // Load cached audio from IndexedDB
+                    const blob = await loadAudio(song.id);
+                    if (blob) {
+                        if (audioUrl) URL.revokeObjectURL(audioUrl);
+                        audioUrl = URL.createObjectURL(blob);
+                        audioElement.src = audioUrl;
+                        preloadAudio();
+                    }
+
+                    fullreset();
                     startsyncpolling(song.id);
 
                     navigator.clipboard.writeText(song.id).catch(() => {});
@@ -1576,6 +1638,9 @@
                 document.getElementById("trackName").textContent = selectedFile.name;
 
                 addrecentsong(data.songId, selectedFile.name, data.tempo, data.totalBeats, data.duration);
+
+                // Cache the audio file locally for recent songs playback
+                storeAudio(data.songId, selectedFile);
 
                 preloadAudio();
 
@@ -2500,6 +2565,7 @@
             a.download = `rhythmia_${ed.songId}_backup.json`;
             a.click();
         });
+
 
         document.getElementById("editBtn").addEventListener("click", () => {
             const songId = document.getElementById("songIdDisplay").textContent;
