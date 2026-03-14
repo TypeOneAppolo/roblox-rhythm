@@ -1700,7 +1700,7 @@
         async function fetchQuota() {
             try {
                 const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
-                const res = await fetch(`${serverUrl}/quota`, { credentials: "include" });
+                const res = await fetch(`${serverUrl}/quota`, { headers: discordHeaders() });
                 const data = await res.json();
                 if (data.unlimited) {
                     discordInGuild = true;
@@ -1714,115 +1714,232 @@
             }
         }
 
-        fetchQuota();
+        // ==========================================
+        // DISCORD AUTH (browser-side, implicit flow)
+        // ==========================================
+
+        let discordAuthed = false;
+        let discordInGuild = false;
+        let discordToken = null;
+        let discordConfig = { client_id: "", guild_id: "" };
+
+        const DISCORD_API = "https://discord.com/api/v10";
+
+        // Get Discord header for backend requests
+        function discordHeaders() {
+            if (discordToken) return { "X-Discord-Token": discordToken };
+            return {};
+        }
 
         function isQuotaBlocked() {
             if (discordInGuild) return false;
             return parseInt(document.getElementById("quotaRemaining").textContent) <= 0;
         }
 
-        // ==========================================
-        // DISCORD AUTH
-        // ==========================================
+        fetchQuota();
 
-        let discordAuthed = false;
-        let discordInGuild = false;
-
-        async function checkDiscordAuth() {
+        // Load saved auth from localStorage
+        function loadDiscordAuth() {
             try {
-                const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
-                const res = await fetch(`${serverUrl}/auth/status`, { credentials: "include" });
-                const data = await res.json();
+                const saved = JSON.parse(localStorage.getItem("rhythmia_discord") || "null");
+                if (saved && saved.access_token) {
+                    return saved;
+                }
+            } catch (e) {}
+            return null;
+        }
 
-                const signInBtn = document.getElementById("discordSignIn");
-                const authBar = document.getElementById("discordAuthBar");
-                const notMember = document.getElementById("discordNotMember");
-                const quotaWrap = document.getElementById("quotaWrap");
-                const quotaNudge = document.getElementById("quotaNudge");
+        function saveDiscordAuth(data) {
+            localStorage.setItem("rhythmia_discord", JSON.stringify(data));
+        }
 
-                if (data.authenticated) {
-                    discordAuthed = true;
-                    discordInGuild = data.in_guild;
-                    signInBtn.style.display = "none";
+        function clearDiscordAuth() {
+            localStorage.removeItem("rhythmia_discord");
+            discordAuthed = false;
+            discordInGuild = false;
+            discordToken = null;
+            renderDiscordUI();
+            fetchQuota();
+        }
 
-                    // Show auth bar with avatar + name
-                    authBar.style.display = "flex";
-                    document.getElementById("authName").textContent = data.username;
+        // Call Discord API from the browser to verify token + check guild membership
+        async function verifyDiscordToken(token) {
+            // 1. Check identity
+            const userRes = await fetch(`${DISCORD_API}/users/@me`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!userRes.ok) return null;
+            const user = await userRes.json();
 
+            // 2. Check guild membership
+            let in_guild = false;
+            if (discordConfig.guild_id) {
+                const guildRes = await fetch(
+                    `${DISCORD_API}/users/@me/guilds/${discordConfig.guild_id}/member`,
+                    { headers: { "Authorization": `Bearer ${token}` } }
+                );
+                in_guild = guildRes.ok;
+            }
+
+            return {
+                access_token: token,
+                id: user.id,
+                username: user.global_name || user.username || "Unknown",
+                avatar: user.avatar,
+                in_guild: in_guild
+            };
+        }
+
+        function renderDiscordUI() {
+            const signInBtn = document.getElementById("discordSignIn");
+            const authBar = document.getElementById("discordAuthBar");
+            const notMember = document.getElementById("discordNotMember");
+            const quotaWrap = document.getElementById("quotaWrap");
+            const quotaNudge = document.getElementById("quotaNudge");
+
+            if (discordAuthed) {
+                signInBtn.style.display = "none";
+                authBar.style.display = "flex";
+
+                const saved = loadDiscordAuth();
+                if (saved) {
+                    document.getElementById("authName").textContent = saved.username;
                     const avatar = document.getElementById("authAvatar");
-                    if (data.avatar) {
-                        avatar.src = `https://cdn.discordapp.com/avatars/${data.discord_id}/${data.avatar}.png?size=48`;
+                    if (saved.avatar) {
+                        avatar.src = `https://cdn.discordapp.com/avatars/${saved.id}/${saved.avatar}.png?size=48`;
                     } else {
                         avatar.src = `https://cdn.discordapp.com/embed/avatars/0.png`;
                     }
+                }
 
-                    const badge = document.getElementById("authBadge");
-                    if (data.in_guild) {
-                        badge.textContent = "Unlimited";
-                        badge.className = "auth-badge unlimited";
-                        notMember.classList.remove("show");
-                        // Hide quota bar entirely — they're unlimited
-                        quotaWrap.style.display = "none";
-                        quotaNudge.classList.remove("show");
-                        // Make sure analyze is enabled if file is selected
-                        if (selectedFile) analyzeBtn.disabled = false;
-                    } else {
-                        badge.textContent = "Not a member";
-                        badge.className = "auth-badge not-member";
-                        notMember.classList.add("show");
-                        quotaWrap.style.display = "";
-                    }
-                } else {
-                    discordAuthed = false;
-                    discordInGuild = false;
-                    signInBtn.style.display = "";
-                    authBar.style.display = "none";
+                const badge = document.getElementById("authBadge");
+                if (discordInGuild) {
+                    badge.textContent = "Unlimited";
+                    badge.className = "auth-badge unlimited";
                     notMember.classList.remove("show");
+                    quotaWrap.style.display = "none";
+                    quotaNudge.classList.remove("show");
+                    if (selectedFile) analyzeBtn.disabled = false;
+                } else {
+                    badge.textContent = "Not a member";
+                    badge.className = "auth-badge not-member";
+                    notMember.classList.add("show");
                     quotaWrap.style.display = "";
                 }
-            } catch (e) {
-                // Auth check failed — show sign-in as fallback
-                document.getElementById("discordSignIn").style.display = "";
+            } else {
+                signInBtn.style.display = "";
+                authBar.style.display = "none";
+                notMember.classList.remove("show");
+                quotaWrap.style.display = "";
             }
         }
 
-        // Sign in button
+        async function initDiscordAuth() {
+            // 1. Fetch client_id and guild_id from backend
+            try {
+                const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+                const cfgRes = await fetch(`${serverUrl}/auth/config`);
+                discordConfig = await cfgRes.json();
+            } catch (e) {
+                console.warn("[Discord] Failed to fetch config:", e);
+                return;
+            }
+
+            if (!discordConfig.client_id) {
+                // Discord not configured on backend — hide sign-in entirely
+                document.getElementById("discordSignIn").style.display = "none";
+                return;
+            }
+
+            // 2. Check if Discord redirected us back with a token in the URL fragment
+            const hash = window.location.hash;
+            if (hash.includes("access_token=")) {
+                const params = new URLSearchParams(hash.substring(1));
+                const token = params.get("access_token");
+                // Clean the URL
+                history.replaceState(null, "", window.location.pathname + window.location.search);
+
+                if (token) {
+                    const data = await verifyDiscordToken(token);
+                    if (data) {
+                        saveDiscordAuth(data);
+                        discordAuthed = true;
+                        discordInGuild = data.in_guild;
+                        discordToken = token;
+                        renderDiscordUI();
+                        fetchQuota();
+                        return;
+                    }
+                }
+            }
+
+            // 3. Check if we have a saved token in localStorage
+            const saved = loadDiscordAuth();
+            if (saved) {
+                const data = await verifyDiscordToken(saved.access_token);
+                if (data) {
+                    saveDiscordAuth(data); // update guild status
+                    discordAuthed = true;
+                    discordInGuild = data.in_guild;
+                    discordToken = saved.access_token;
+                    renderDiscordUI();
+                    fetchQuota();
+                    return;
+                } else {
+                    // Token expired — clear it
+                    clearDiscordAuth();
+                }
+            }
+
+            // 4. Not authed — show sign-in button
+            renderDiscordUI();
+        }
+
+        // Sign in — redirect to Discord with implicit grant
         document.getElementById("discordSignIn").addEventListener("click", () => {
-            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
-            window.location.href = `${serverUrl}/auth/login`;
+            const redirectUri = encodeURIComponent(window.location.origin + "/");
+            const scope = encodeURIComponent("identify guilds.members.read");
+            const url = (
+                `${DISCORD_API}/oauth2/authorize`
+                + `?client_id=${discordConfig.client_id}`
+                + `&redirect_uri=${redirectUri}`
+                + `&response_type=token`
+                + `&scope=${scope}`
+            );
+            window.location.href = url;
         });
 
         // Logout
         document.getElementById("authLogout").addEventListener("click", () => {
-            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
-            window.location.href = `${serverUrl}/auth/logout`;
+            clearDiscordAuth();
         });
 
-        // Re-check guild membership
+        // Re-check guild membership (after joining the server)
         document.getElementById("recheckBtn").addEventListener("click", async () => {
-            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
             const btn = document.getElementById("recheckBtn");
             btn.textContent = "Checking...";
             btn.disabled = true;
-            try {
-                const res = await fetch(`${serverUrl}/auth/recheck`, { credentials: "include" });
-                const data = await res.json();
-                if (data.in_guild) {
-                    // Refresh everything
-                    await checkDiscordAuth();
-                    await fetchQuota();
-                } else {
-                    btn.textContent = "Not found — try again";
-                    setTimeout(() => { btn.textContent = "Re-check membership"; btn.disabled = false; }, 2000);
+
+            const saved = loadDiscordAuth();
+            if (saved) {
+                const data = await verifyDiscordToken(saved.access_token);
+                if (data && data.in_guild) {
+                    saveDiscordAuth(data);
+                    discordInGuild = true;
+                    discordToken = saved.access_token;
+                    renderDiscordUI();
+                    fetchQuota();
+                    return;
                 }
-            } catch (e) {
-                btn.textContent = "Error — try again";
-                setTimeout(() => { btn.textContent = "Re-check membership"; btn.disabled = false; }, 2000);
             }
+
+            btn.textContent = "Not found — try again";
+            btn.disabled = false;
+            setTimeout(() => { btn.textContent = "Re-check membership"; }, 2000);
         });
 
-        // Check on page load
-        checkDiscordAuth();
+        // Boot
+        initDiscordAuth();
 
 
         // ==========================================
@@ -2360,7 +2477,11 @@
                 progressFill.style.width = "60%";
                 statusText.textContent = "Analyzing (can take 30-60s)...";
 
-                const response = await fetch(`${serverUrl}/upload`, { method: "POST", body: formData, credentials: "include" });
+                const response = await fetch(`${serverUrl}/upload`, {
+                    method: "POST",
+                    body: formData,
+                    headers: discordHeaders()
+                });
 
                 const contentType = response.headers.get("content-type") || "";
                 if (!contentType.includes("application/json")) {
