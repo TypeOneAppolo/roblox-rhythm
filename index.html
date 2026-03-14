@@ -959,6 +959,53 @@
             z-index: 3000;
             pointer-events: none;
         }
+
+        /* ---- FEEDBACK BUTTON ---- */
+        .feedback-fab {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 999;
+            padding: 8px 16px;
+            background: var(--accent);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 12px rgba(232, 93, 58, 0.3);
+            animation: fabPulse 2.5s ease-in-out infinite;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .feedback-fab:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(232, 93, 58, 0.45);
+            animation: none;
+        }
+        .feedback-fab:active { transform: scale(0.97); }
+
+        .feedback-fab .fab-dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            animation: fabDotBlink 1.8s ease-in-out infinite;
+        }
+
+        @keyframes fabPulse {
+            0%, 100% { box-shadow: 0 2px 12px rgba(232, 93, 58, 0.3); }
+            50% { box-shadow: 0 2px 20px rgba(232, 93, 58, 0.55); }
+        }
+        @keyframes fabDotBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
@@ -2578,5 +2625,8 @@
             if (ed.active) edResizeCanvas();
         });
     </script>
+    <a class="feedback-fab" href="https://forms.gle/wav1Z94rSb48QWiG6" target="_blank" rel="noopener">
+        <span class="fab-dot"></span> Feedback
+    </a>
 </body>
 </html>
