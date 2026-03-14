@@ -308,6 +308,50 @@
         }
         .copyNotice.show { opacity: 1; }
 
+        .lb-link {
+            display: block;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 0;
+            margin-bottom: 10px;
+            transition: color 0.15s;
+        }
+        .lb-link:hover { color: var(--accent); }
+
+        .rankings-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            text-decoration: none;
+            transition: border-color 0.15s;
+        }
+        .rankings-link:hover { border-color: var(--accent); }
+        .rankings-title {
+            color: var(--text-bright);
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .rankings-desc {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            line-height: 1.4;
+        }
+        .rankings-arrow {
+            color: var(--accent);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-left: 14px;
+        }
+
         .howHint {
             font-size: 0.7rem;
             color: var(--text-dim);
@@ -1080,6 +1124,8 @@
                 <div class="copyNotice" id="copyNotice">Copied!</div>
             </div>
 
+            <a class="lb-link" id="lbLink" href="#">View Leaderboard &rarr;</a>
+
             <div class="howHint">
                 <span class="step-num">1</span> Copy the code
                 <span class="step-num">2</span> Paste it in-game
@@ -1116,6 +1162,14 @@
         </div>
 
         <div class="footer">
+            <a href="/rankings/" class="rankings-link">
+                <div class="rankings-link-inner">
+                    <div class="rankings-title">Rankings & Leaderboards</div>
+                    <div class="rankings-desc">See top players, most-played songs, and per-beatmap leaderboards.</div>
+                </div>
+                <span class="rankings-arrow">&rarr;</span>
+            </a>
+
             <div class="solo-banner">
                 <div class="solo-title">One-person project</div>
                 <div class="solo-desc">No accounts, no tracking, no data collection. Upload a song, get a code, play in Roblox. That's it.</div>
@@ -1475,6 +1529,7 @@
 
                 item.addEventListener("click", async () => {
                     document.getElementById("songIdDisplay").textContent = song.id;
+                    document.getElementById("lbLink").href = "/leaderboard/?id=" + song.id;
                     document.getElementById("tempoValue").textContent = song.tempo;
                     document.getElementById("beatsValue").textContent = song.beats;
                     document.getElementById("durationValue").textContent = formatTime(song.dur);
@@ -1692,6 +1747,7 @@
                 document.getElementById("beatsValue").textContent = data.totalBeats;
                 document.getElementById("durationValue").textContent = formatTime(data.duration);
                 document.getElementById("songIdDisplay").textContent = data.songId;
+                document.getElementById("lbLink").href = "/leaderboard/?id=" + data.songId;
                 document.getElementById("trackName").textContent = selectedFile.name;
 
                 addrecentsong(data.songId, selectedFile.name, data.tempo, data.totalBeats, data.duration);
