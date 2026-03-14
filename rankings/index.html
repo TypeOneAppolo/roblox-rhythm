@@ -240,12 +240,31 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
+        .song-code-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+        }
         .song-code {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.65rem;
             color: var(--accent);
-            margin-top: 2px;
         }
+        .copy-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 1px 6px;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .copy-btn:hover { color: var(--text); border-color: var(--border-hover); }
+        .copy-btn.copied { color: var(--green); border-color: var(--green); }
 
         /* ---- STATES ---- */
         .loading {
@@ -405,7 +424,10 @@
                     <div class="song-left">
                         <div class="song-title">${esc(s.song_name)}</div>
                         <div class="song-sub">Top score by <span>${esc(s.top_player)}</span></div>
-                        <div class="song-code">${esc(s.song_id)}</div>
+                        <div class="song-code-row">
+                            <span class="song-code">${esc(s.song_id)}</span>
+                            <button class="copy-btn" onclick="event.stopPropagation(); copyCode('${esc(s.song_id)}', this)">copy</button>
+                        </div>
                     </div>
                     <div class="song-right">
                         <div class="song-players">${s.player_count}</div>
@@ -428,6 +450,17 @@
             const d = document.createElement('div');
             d.textContent = s || '';
             return d.innerHTML;
+        }
+
+        function copyCode(code, btn) {
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = 'copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'copy';
+                    btn.classList.remove('copied');
+                }, 1200);
+            });
         }
     </script>
 </body>
