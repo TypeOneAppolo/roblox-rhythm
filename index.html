@@ -1700,7 +1700,7 @@
         async function fetchQuota() {
             try {
                 const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
-                const res = await fetch(`${serverUrl}/quota`, { headers: discordHeaders() });
+                const res = await fetch(`${serverUrl}/quota`, { headers: discordHeaders(), credentials: "include" });
                 const data = await res.json();
                 if (data.unlimited) {
                     discordInGuild = true;
@@ -2480,7 +2480,8 @@
                 const response = await fetch(`${serverUrl}/upload`, {
                     method: "POST",
                     body: formData,
-                    headers: discordHeaders()
+                    headers: discordHeaders(),
+                    credentials: "include"
                 });
 
                 const contentType = response.headers.get("content-type") || "";
