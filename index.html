@@ -1874,14 +1874,18 @@
         }
 
         async function initDiscordAuth() {
-            // 1. Fetch client_id and guild_id from backend
-            try {
-                const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
-                const cfgRes = await fetch(`${serverUrl}/auth/config`);
-                discordConfig = await cfgRes.json();
-            } catch (e) {
-                console.warn("[Discord] Failed to fetch config:", e);
-                return;
+            // 1. Fetch client_id and guild_id from backend (retry up to 3 times for sleeping Spaces)
+            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    const cfgRes = await fetch(`${serverUrl}/auth/config`);
+                    discordConfig = await cfgRes.json();
+                    break;
+                } catch (e) {
+                    console.warn(`[Discord] Config fetch attempt ${attempt}/3 failed:`, e);
+                    if (attempt === 3) return;
+                    await new Promise(r => setTimeout(r, 2000));
+                }
             }
 
             if (!discordConfig.client_id) {
@@ -2655,6 +2659,13 @@
                     if (data.play) {
                         if (syncTriggered) return; // Already playing from this signal
                         const seekOffset = data.elapsed || 0;
+
+                        // Ignore stale signals (leftover from previous sessions)
+                        if (seekOffset > 10) {
+                            console.warn(`[Sync] Stale signal ignored (${(seekOffset * 1000).toFixed(0)}ms old)`);
+                            return;
+                        }
+
                         console.log(`[Sync] Play signal. Elapsed: ${(seekOffset * 1000).toFixed(0)}ms — seeking to ${seekOffset.toFixed(3)}s`);
 
                         audioElement.currentTime = seekOffset;
