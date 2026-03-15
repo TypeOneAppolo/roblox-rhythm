@@ -2523,7 +2523,12 @@
 
             } catch (err) {
                 if (err.message.includes("Daily analysis limit")) fetchQuota();
-                statusText.textContent = "Error: " + err.message;
+
+                if (err.message.includes("500") || err.message.includes("Failed to analyze")) {
+                    statusText.textContent = "You've hit the rate limit — please try again soon.";
+                } else {
+                    statusText.textContent = "Error: " + err.message;
+                }
                 analyzeBtn.disabled = isQuotaBlocked();
             }
         });
