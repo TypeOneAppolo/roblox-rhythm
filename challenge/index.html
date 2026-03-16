@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Challenge — Rhythmia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0c;
+            --surface: #111114;
+            --border: #1c1c22;
+            --border-hover: #2a2a34;
+            --text: #a0a0ae;
+            --text-dim: #55555f;
+            --text-bright: #e4e4ec;
+            --accent: #e85d3a;
+            --purple: #a855f7;
+            --pink: #ec4899;
+            --green: #3fca6e;
+            --red: #e55555;
+            --gold: #f0c040;
+            --silver: #b0b0c0;
+            --bronze: #cd7f32;
+            --radius: 8px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 520px;
+            width: 92%;
+            padding: 48px 0 40px;
+        }
+
+        /* ---- HEADER ---- */
+        .header { margin-bottom: 28px; }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            color: #fff;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            text-decoration: none;
+        }
+        .logo a { text-decoration: none; color: var(--text-bright); }
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: -0.03em;
+        }
+        .back-link {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            text-decoration: none;
+            margin-left: 38px;
+            transition: color 0.15s;
+        }
+        .back-link:hover { color: var(--text); }
+
+        /* ---- CHALLENGE CARD ---- */
+        .challenge-card {
+            position: relative;
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 22px 18px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            isolation: isolate;
+        }
+        .challenge-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius);
+            padding: 1px;
+            background: linear-gradient(
+                var(--shimmer-angle, 120deg),
+                transparent 0%,
+                var(--purple) 20%,
+                var(--pink) 40%,
+                #f59e0b 60%,
+                transparent 80%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: shimmerSlide 4s ease-in-out infinite;
+            z-index: -1;
+        }
+        @keyframes shimmerSlide {
+            0%   { --shimmer-angle: 120deg; }
+            50%  { --shimmer-angle: 240deg; }
+            100% { --shimmer-angle: 480deg; }
+        }
+        @property --shimmer-angle {
+            syntax: '<angle>';
+            initial-value: 120deg;
+            inherits: false;
+        }
+
+        .challenge-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--purple);
+            background: rgba(168, 85, 247, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .challenge-song-name {
+            color: var(--text-bright);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        .challenge-description {
+            color: var(--text);
+            font-size: 0.8rem;
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+
+        .challenge-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+        .meta-item {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+        .meta-item span {
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+        }
+
+        .countdown {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 14px;
+        }
+        .countdown.urgent { color: var(--red); }
+
+        .challenge-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 16px;
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.15s;
+        }
+        .action-btn:hover { opacity: 0.85; }
+
+        .action-btn.download {
+            background: var(--purple);
+            color: #fff;
+        }
+        .action-btn.copy-code {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .action-btn.copy-code:hover { border-color: var(--border-hover); color: var(--text-bright); }
+        .action-btn.copy-code.copied { color: var(--green); border-color: var(--green); }
+
+        .song-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent);
+            background: rgba(232, 93, 58, 0.08);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        /* ---- HOW TO PLAY ---- */
+        .how-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+        .how-section .how-title {
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+        .how-section ol {
+            padding-left: 18px;
+        }
+        .how-section li { margin-bottom: 3px; }
+        .how-section code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent);
+        }
+
+        /* ---- TABLE ---- */
+        .lb-section-label {
+            color: var(--text-dim);
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 10px;
+        }
+
+        .lb-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .lb-table th {
+            color: var(--text-dim);
+            font-size: 0.62rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+            padding: 0 10px 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .lb-table th:last-child { text-align: right; }
+        .lb-table th.center { text-align: center; }
+
+        .lb-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            vertical-align: middle;
+        }
+        .lb-table tr:last-child td { border-bottom: none; }
+        .lb-table tbody tr { transition: background 0.12s; }
+        .lb-table tbody tr:hover { background: rgba(255,255,255,0.015); }
+
+        .rank-cell {
+            width: 36px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.78rem;
+            color: var(--text-dim);
+        }
+        .rank-1 { color: var(--gold); }
+        .rank-2 { color: var(--silver); }
+        .rank-3 { color: var(--bronze); }
+
+        .player-name {
+            color: var(--text-bright);
+            font-weight: 600;
+        }
+
+        .score-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--text-bright);
+            text-align: right;
+        }
+
+        .acc-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text);
+            text-align: center;
+        }
+
+        .combo-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
+        .fc-badge {
+            display: inline-block;
+            font-size: 0.58rem;
+            font-weight: 700;
+            color: var(--green);
+            background: rgba(63, 202, 110, 0.1);
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+        .empty-state .empty-icon {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            opacity: 0.3;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .loading { text-align: center; padding: 48px 20px; color: var(--text-dim); font-size: 0.8rem; }
+        .error-state { text-align: center; padding: 48px 20px; color: var(--red); font-size: 0.85rem; }
+
+        .footer {
+            margin-top: 28px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .copyright-line { color: var(--text-dim); font-size: 0.62rem; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.25s ease both; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <a href="/" class="logo-icon">R</a>
+                <a href="/"><h1>Rhythmia</h1></a>
+            </div>
+            <a href="/" class="back-link">&larr; Beat Mapper</a>
+        </div>
+
+        <div id="content">
+            <div class="loading">Loading challenge...</div>
+        </div>
+
+        <div class="footer">
+            <div class="copyright-line">Rhythmia &mdash; any song, any time</div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'https://appolopl-roblox-rhythm-api.hf.space';
+        const content = document.getElementById('content');
+        let countdownInterval = null;
+
+        load();
+
+        async function load() {
+            try {
+                const res = await fetch(`${API}/challenge/current`);
+                const data = await res.json();
+
+                if (!data.active) {
+                    content.innerHTML = `<div class="empty-state fade-in">
+                        <div class="empty-icon">--</div>
+                        No active challenge right now.<br>
+                        <span style="font-size:0.72rem;color:var(--text-dim)">Check back soon!</span>
+                    </div>`;
+                    return;
+                }
+
+                render(data);
+            } catch (e) {
+                content.innerHTML = `<div class="error-state">Could not load challenge<br>
+                    <span style="font-size:0.72rem;color:var(--text-dim)">${e.message}</span></div>`;
+            }
+        }
+
+        function render(data) {
+            let html = '<div class="fade-in">';
+
+            // Challenge card
+            html += `<div class="challenge-card">
+                <div class="challenge-badge">Weekly Challenge</div>
+                <div class="challenge-song-name">${esc(data.song_name)}</div>`;
+
+            if (data.description) {
+                html += `<div class="challenge-description">${esc(data.description)}</div>`;
+            }
+
+            html += `<div class="countdown" id="countdown"></div>`;
+
+            html += `<div class="challenge-actions">`;
+            if (data.download_url) {
+                html += `<a href="${esc(data.download_url)}" target="_blank" rel="noopener" class="action-btn download">Download Song</a>`;
+            }
+            html += `<button class="action-btn copy-code" onclick="copyCode('${esc(data.song_id)}', this)">
+                    Code: <span class="song-code">${esc(data.song_id)}</span>
+                </button>`;
+            html += `</div></div>`;
+
+            // How to play
+            html += `<div class="how-section">
+                <div class="how-title">How to play</div>
+                <ol>
+                    <li>Download the song from the button above</li>
+                    <li>Go to <a href="/" style="color:var(--accent);text-decoration:none">Beat Mapper</a> and upload the song file</li>
+                    <li>Once processed, enter the code <code>${esc(data.song_id)}</code> in Roblox</li>
+                    <li>Play and your score lands on the challenge leaderboard automatically</li>
+                </ol>
+            </div>`;
+
+            // Leaderboard
+            const scores = data.scores || [];
+            if (scores.length === 0) {
+                html += `<div class="empty-state">
+                    <div class="empty-icon">--</div>
+                    No scores yet. Be the first to compete!
+                </div>`;
+            } else {
+                html += `<div class="lb-section-label">Challenge Leaderboard</div>`;
+                html += `<table class="lb-table">
+                    <thead><tr>
+                        <th class="center">#</th>
+                        <th>Player</th>
+                        <th class="center">Acc</th>
+                        <th class="center">Combo</th>
+                        <th style="text-align:right">Score</th>
+                    </tr></thead><tbody>`;
+
+                for (const s of scores) {
+                    const rankClass = s.rank <= 3 ? ` rank-${s.rank}` : '';
+                    html += `<tr>
+                        <td class="rank-cell${rankClass}">${s.rank}</td>
+                        <td>
+                            <span class="player-name">${esc(s.username)}</span>
+                            ${s.fc ? '<span class="fc-badge">FC</span>' : ''}
+                        </td>
+                        <td class="acc-cell">${s.accuracy.toFixed(1)}%</td>
+                        <td class="combo-cell">${s.max_combo}x</td>
+                        <td class="score-cell">${s.score.toLocaleString()}</td>
+                    </tr>`;
+                }
+                html += '</tbody></table>';
+            }
+
+            html += '</div>';
+            content.innerHTML = html;
+            document.title = `${esc(data.song_name)} — Weekly Challenge — Rhythmia`;
+
+            // Start countdown
+            if (data.ends_at) {
+                const endDate = new Date(data.ends_at);
+                updateCountdown(endDate);
+                countdownInterval = setInterval(() => updateCountdown(endDate), 60000);
+            }
+        }
+
+        function updateCountdown(endDate) {
+            const el = document.getElementById('countdown');
+            if (!el) return;
+
+            const diff = endDate - Date.now();
+            if (diff <= 0) {
+                el.textContent = 'Challenge ended!';
+                el.classList.add('urgent');
+                if (countdownInterval) clearInterval(countdownInterval);
+                return;
+            }
+
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor((diff % 86400000) / 3600000);
+
+            if (days > 0) {
+                el.textContent = `${days}d ${hours}h remaining`;
+            } else {
+                el.textContent = `${hours}h remaining`;
+                el.classList.add('urgent');
+            }
+        }
+
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s || '';
+            return d.innerHTML;
+        }
+
+        function copyCode(code, btn) {
+            navigator.clipboard.writeText(code).then(() => {
+                btn.classList.add('copied');
+                const codeEl = btn.querySelector('.song-code');
+                const orig = codeEl.textContent;
+                codeEl.textContent = 'copied!';
+                setTimeout(() => {
+                    codeEl.textContent = orig;
+                    btn.classList.remove('copied');
+                }, 1200);
+            });
+        }
+    </script>
+</body>
+</html>
