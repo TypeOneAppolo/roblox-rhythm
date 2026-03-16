@@ -556,6 +556,93 @@
         }
         .lb-link:hover { color: var(--accent); }
 
+        /* ---- WEEKLY CHALLENGE LINK ---- */
+        .challenge-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            position: relative;
+            z-index: 0;
+            isolation: isolate;
+            overflow: hidden;
+        }
+        .challenge-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius);
+            padding: 1px;
+            background: linear-gradient(
+                var(--shimmer-angle, 120deg),
+                transparent 0%,
+                #a855f7 20%,
+                #ec4899 40%,
+                #f59e0b 60%,
+                transparent 80%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: shimmerSlide 4s ease-in-out infinite;
+        }
+        @keyframes shimmerSlide {
+            0%   { --shimmer-angle: 120deg; }
+            50%  { --shimmer-angle: 240deg; }
+            100% { --shimmer-angle: 480deg; }
+        }
+        @property --shimmer-angle {
+            syntax: '<angle>';
+            initial-value: 120deg;
+            inherits: false;
+        }
+        .challenge-link:hover::before {
+            animation-duration: 2s;
+        }
+        .challenge-link-inner { flex: 1; min-width: 0; }
+        .challenge-tag {
+            display: inline-block;
+            font-size: 0.58rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #a855f7;
+            background: rgba(168, 85, 247, 0.1);
+            padding: 2px 7px;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+        .challenge-title {
+            color: var(--text-bright);
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .challenge-desc {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            line-height: 1.4;
+        }
+        .challenge-arrow {
+            color: #a855f7;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-left: 14px;
+        }
+        .challenge-link.no-challenge {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .challenge-link.no-challenge::before {
+            animation: none;
+            background: var(--border);
+        }
+
         .rankings-link {
             display: flex;
             align-items: center;
@@ -1532,6 +1619,15 @@
         </div>
 
         <div class="footer">
+            <a href="/challenge/" class="challenge-link" id="challengeLink" style="display:none">
+                <div class="challenge-link-inner">
+                    <div class="challenge-tag">Weekly Challenge</div>
+                    <div class="challenge-title" id="challengeTitle">Loading...</div>
+                    <div class="challenge-desc" id="challengeDesc"></div>
+                </div>
+                <span class="challenge-arrow">&rarr;</span>
+            </a>
+
             <a href="/rankings/" class="rankings-link">
                 <div class="rankings-link-inner">
                     <div class="rankings-title">Rankings & Leaderboards</div>
@@ -3783,6 +3879,29 @@
             }
         }
         draw();
+    })();
+    </script>
+
+    <script>
+    // ---- Weekly Challenge Button ----
+    (async () => {
+        try {
+            const serverUrl = document.getElementById("serverUrl").value.replace(/\/$/, "");
+            const res = await fetch(`${serverUrl}/challenge/current`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.active) return;
+
+            const link = document.getElementById("challengeLink");
+            document.getElementById("challengeTitle").textContent = data.song_name || "Weekly Challenge";
+            const endDate = new Date(data.ends_at);
+            const daysLeft = Math.max(0, Math.ceil((endDate - Date.now()) / 86400000));
+            document.getElementById("challengeDesc").textContent =
+                `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left — compete for the top score!`;
+            link.style.display = "";
+        } catch (e) {
+            // no challenge available, button stays hidden
+        }
     })();
     </script>
 
